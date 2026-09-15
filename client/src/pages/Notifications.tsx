@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Notifications (Eco-Tech Glasshouse · low animation)
+ * RELIVO — Notifications (Eco-Tech Glasshouse · low animation)
  * Animated list with fade/slide, read/unread distinction, type icons,
  * mark-all-read action. No excessive motion.
  */

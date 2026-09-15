@@ -1,7 +1,7 @@
-# ReUseNet AI — Design Brainstorm
+# RELIVO — Design Brainstorm
 
 ## Project Context (from user handoff)
-ReUseNet AI is a full-stack college mini project (React + Vite + Tailwind + React Router + Axios + Recharts frontend) — an intelligent circular resource exchange platform connecting donors with organizations that need resources. 14 pages: Landing, About, Login, Register, Donor/Recipient/Admin dashboards, Upload Resource, Browse, Resource Details, Request Resource, AI Recommendation, Notifications, Analytics. React Bits effects provided: Aurora, BlurText, SplitText, ScrollReveal, SpotlightCard, TiltedCard, CountUp, AnimatedList, AnimatedContent, Magnet, ShinyText, GlareHover.
+RELIVO is a full-stack college mini project (React + Vite + Tailwind + React Router + Axios + Recharts frontend) — an intelligent circular resource exchange platform connecting donors with organizations that need resources. 14 pages: Landing, About, Login, Register, Donor/Recipient/Admin dashboards, Upload Resource, Browse, Resource Details, Request Resource, AI Recommendation, Notifications, Analytics. React Bits effects provided: Aurora, BlurText, SplitText, ScrollReveal, SpotlightCard, TiltedCard, CountUp, AnimatedList, AnimatedContent, Magnet, ShinyText, GlareHover.
 
 Design constraint from user: "premium modern sustainability-tech SaaS platform", NOT generic CRUD, NOT cyberpunk, NOT overloaded animation. Landing = most impressive; dashboards = usability-first.
 
@@ -63,7 +63,7 @@ Interactions confirm rather than perform. Buttons scale 0.97 on press; cards lif
 - Hierarchy: hero clamp(2.5rem,5vw,4rem) Space Grotesk 700; section h2 2rem; card titles 1.1rem 600; body 0.95rem. Numbers/stat blocks use tabular-nums.
 
 ### Brand Essence
-"ReUseNet AI — the intelligent network that gives reusable resources a second life, connecting donors with the communities that need them most." Personality: purposeful, intelligent, warm.
+"RELIVO — the intelligent network that gives reusable resources a second life, connecting donors with the communities that need them most." Personality: purposeful, intelligent, warm.
 
 ### Brand Voice
 Confident, mission-first, human. Headlines state impact; CTAs are action-clear without hype.
@@ -71,10 +71,10 @@ Confident, mission-first, human. Headlines state impact; CTAs are action-clear w
 - Example CTA: "Start giving — upload your first resource"
 
 ### Wordmark & Logo
-A circular loop formed by two leaves/arrows in deep emerald with a small amber node — symbolizing the circular exchange. Wordmark "ReUseNet" in Space Grotesk 700 with "AI" in amber as a superscript-style chip.
+A circular loop formed by two leaves/arrows in deep emerald with a small amber node — symbolizing the circular exchange. Wordmark "RELIVO" in Space Grotesk 700.
 
 ### Signature Brand Color
-**Deep Emerald #046C4E** — unmistakably ReUseNet.
+**Deep Emerald #046C4E** — unmistakably RELIVO.
 
 ## Style Decisions
 - React Bits usage map (per user strategy):

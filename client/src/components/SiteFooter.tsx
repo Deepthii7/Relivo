@@ -1,4 +1,4 @@
-/* ReUseNet AI — Marketing footer (Eco-Tech Glasshouse) */
+/* RELIVO — Marketing footer (Eco-Tech Glasshouse) */
 import { Link } from "wouter";
 import { RotateCcw } from "lucide-react";
 
@@ -10,8 +10,8 @@ export default function SiteFooter() {
       <div className="container grid gap-10 py-12 md:grid-cols-4">
         <div className="md:col-span-2">
           <div className="flex items-center gap-2.5">
-            <img src={LOGO} alt="ReUseNet AI logo" className="h-7 w-7 rounded-lg bg-white/90 p-0.5" />
-            <span className="font-display text-lg font-bold">ReUseNet <span className="text-[#A7F3D0]">AI</span></span>
+            <img src={LOGO} alt="RELIVO logo" className="h-7 w-7 rounded-lg bg-white/90 p-0.5" />
+            <span className="font-display text-lg font-bold">RELIVO</span>
           </div>
           <p className="mt-3 max-w-sm text-sm leading-relaxed text-emerald-200/80">
             The intelligent network that gives reusable resources a second life — connecting donors with the schools, NGOs, and communities that need them most.
@@ -42,7 +42,7 @@ export default function SiteFooter() {
       </div>
       <div className="border-t border-white/10">
         <div className="container flex flex-col items-center justify-between gap-2 py-5 text-xs text-emerald-200/70 sm:flex-row">
-          <p>© 2026 ReUseNet AI — Intelligent Circular Resource Exchange Platform</p>
+          <p>© 2026 RELIVO — Intelligent Circular Resource Exchange Platform</p>
           <p>Built for a circular economy · Reduce · Reuse · Recommend</p>
         </div>
       </div>

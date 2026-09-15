@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Resource Details (Eco-Tech Glasshouse · medium animation)
+ * RELIVO — Resource Details (Eco-Tech Glasshouse · medium animation)
  * Image with subtle hover lift, full resource metadata, donor card, clear CTA.
  */
 import { Link, useParams } from "wouter";

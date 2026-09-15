@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Donor Dashboard (Eco-Tech Glasshouse · low/medium animation)
+ * RELIVO — Donor Dashboard (Eco-Tech Glasshouse · low/medium animation)
  * CountUp stats, SpotlightCard hover, recent donations + incoming requests tables.
  * Usability-first; no table animation.
  */

@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Login (Eco-Tech Glasshouse · low animation)
+ * RELIVO — Login (Eco-Tech Glasshouse · low animation)
  * Clean form: email, password, role. Subtle animated bg, calm entrance.
  */
 import { useEffect, useState } from "react";
@@ -56,9 +56,9 @@ export default function Login() {
 
         <div className="rise-in relative w-full max-w-md px-4">
           <div className="mb-6 flex flex-col items-center">
-            <img src={LOGO} alt="ReUseNet AI logo" className="h-12 w-12" />
+            <img src={LOGO} alt="RELIVO logo" className="h-12 w-12" />
             <p className="mt-3 font-display text-xl font-bold">
-              ReUseNet <span className="text-accent">AI</span>
+              RELIVO
             </p>
             <p className="mt-1 text-sm text-muted-foreground">Welcome back — the loop is waiting.</p>
           </div>

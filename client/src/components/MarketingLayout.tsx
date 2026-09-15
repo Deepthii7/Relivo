@@ -1,4 +1,4 @@
-/* ReUseNet AI — Marketing layout: header + page + footer */
+/* RELIVO — Marketing layout: header + page + footer */
 import SiteHeader from "@/components/SiteHeader";
 import SiteFooter from "@/components/SiteFooter";
 

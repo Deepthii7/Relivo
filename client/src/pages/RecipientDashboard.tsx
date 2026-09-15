@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Recipient Dashboard (Eco-Tech Glasshouse · low/medium animation)
+ * RELIVO — Recipient Dashboard (Eco-Tech Glasshouse · low/medium animation)
  * Animated stats, spotlight cards, AI recommendation strip that visually
  * stands out from normal resources (gradient border + AI badge).
  */

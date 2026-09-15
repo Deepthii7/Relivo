@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Admin Dashboard (Eco-Tech Glasshouse · professional, info-dense)
+ * RELIVO — Admin Dashboard (Eco-Tech Glasshouse · professional, info-dense)
  * CountUp KPIs, spotlight cards, Recharts mini-charts with entrance, system activity.
  */
 import { Link } from "wouter";

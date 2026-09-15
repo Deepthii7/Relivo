@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Shared primitives (Eco-Tech Glasshouse)
+ * RELIVO — Shared primitives (Eco-Tech Glasshouse)
  * AIBadge: signature emerald→amber gradient chip marking AI-derived results
  * StatusBadge: consistent status pills across dashboards & browse
  * ResourceImage: uniform image treatment for resource cards

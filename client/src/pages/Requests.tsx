@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Requests page (Eco-Tech Glasshouse · low animation)
+ * RELIVO — Requests page (Eco-Tech Glasshouse · low animation)
  * Donors see incoming requests on their resources; recipients see their own requests.
  * Admin sees all. Includes approve/reject actions for donors.
  */

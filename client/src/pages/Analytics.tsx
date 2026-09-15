@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Analytics & Reports (Eco-Tech Glasshouse · medium animation)
+ * RELIVO — Analytics & Reports (Eco-Tech Glasshouse · medium animation)
  * Professional, data-driven: CountUp KPIs + Recharts with subtle entrance.
  */
 import { Package, CheckCircle2, Inbox, Sparkles, TrendingUp } from "lucide-react";

@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Resource card (Eco-Tech Glasshouse)
+ * RELIVO — Resource card (Eco-Tech Glasshouse)
  * Marketplace-style card: image, category, quantity, condition, distance,
  * status badge + CTA. Used by Browse, dashboards, and details-related flows.
  */

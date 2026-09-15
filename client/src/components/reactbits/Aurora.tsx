@@ -1,4 +1,4 @@
-/* ReUseNet AI — Aurora (React Bits), adapted to Tailwind 4 + React 19 */
+/* RELIVO — Aurora (React Bits), adapted to Tailwind 4 + React 19 */
 import { useEffect, useRef } from "react";
 
 interface AuroraProps {

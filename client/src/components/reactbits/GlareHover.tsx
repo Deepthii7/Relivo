@@ -1,4 +1,4 @@
-/* ReUseNet AI — GlareHover (from user's snippet), adapted to Tailwind 4 + React 19
+/* RELIVO — GlareHover (from user's snippet), adapted to Tailwind 4 + React 19
  * Subtle angled light sweep on hover; used on landing feature cards. */
 import { useRef, useState } from "react";
 

@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Mock auth session (Eco-Tech Glasshouse)
+ * RELIVO — Mock auth session (Eco-Tech Glasshouse)
  * Client-side demo session stored in localStorage: { role, name, email, loggedIn }
  * Mirrors the JWT role-based access described in the project handoff, so the
  * real FastAPI backend can drop in later with zero UI changes.

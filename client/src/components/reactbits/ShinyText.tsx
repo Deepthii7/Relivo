@@ -1,4 +1,4 @@
-/* ReUseNet AI — ShinyText (React Bits), adapted to Tailwind 4 + React 19
+/* RELIVO — ShinyText (React Bits), adapted to Tailwind 4 + React 19
  * Used as the landing eyebrow badge. */
 interface ShinyTextProps {
   text: string;

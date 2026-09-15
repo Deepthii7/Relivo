@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Browse Resources (Eco-Tech Glasshouse · medium animation)
+ * RELIVO — Browse Resources (Eco-Tech Glasshouse · medium animation)
  * Marketplace/catalog feel: search, category/condition/location filters,
  * resource grid with spotlight hover and staggered entrance. Not e-commerce.
  */

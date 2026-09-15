@@ -1,7 +1,7 @@
 /*
- * ReUseNet AI — Marketing site header (Eco-Tech Glasshouse)
+ * RELIVO — Marketing site header (Eco-Tech Glasshouse)
  * Glass sticky nav that gains opacity on scroll; violet brand wordmark
- * "ReUseNet" with violet "AI" chip; demo-session aware (shows user pill).
+ * RELIVO wordmark; demo-session aware (shows user pill).
  */
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
@@ -42,9 +42,9 @@ export default function SiteHeader() {
     >
       <div className="container flex h-16 items-center justify-between">
         <Link href="/" className="flex items-center gap-2.5">
-          <img src={LOGO} alt="ReUseNet AI logo" className="h-9 w-9" />
+          <img src={LOGO} alt="RELIVO logo" className="h-9 w-9" />
           <span className="font-display text-xl font-bold tracking-tight text-foreground">
-            ReUseNet<span className="ml-1 align-middle"><AIBadge className="scale-90 origin-left">AI</AIBadge></span>
+            RELIVO
           </span>
         </Link>
 

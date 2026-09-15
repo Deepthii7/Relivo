@@ -1,4 +1,4 @@
-/* ReUseNet AI — Role gate: redirects unauthenticated users to /login,
+/* RELIVO — Role gate: redirects unauthenticated users to /login,
  * and mismatched roles to their correct dashboard.
  * Redirects run in a mount effect (not in the render path) so they never
  * race with the auth-context hydration that can briefly report "logged out". */

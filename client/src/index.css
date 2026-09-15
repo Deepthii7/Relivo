@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — "Eco-Tech Glasshouse" design system
+ * RELIVO — "Eco-Tech Glasshouse" design system
  * Deep emerald #046C4E anchor · warm cream surfaces · amber urgency accent
  * Display: Space Grotesk · Body: Public Sans
  * Motion: fast ease-out entrances, subtle lifts, restrained spectacle
@@ -103,7 +103,7 @@
 }
 
 .dark {
-  /* ReUseNet stays light — dark map provided only for token completeness */
+  /* RELIVO stays light — dark map provided only for token completeness */
   --background: oklch(0.2 0.02 165);
   --foreground: oklch(0.94 0.008 120);
   --card: oklch(0.24 0.025 165);

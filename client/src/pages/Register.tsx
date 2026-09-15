@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Register (Eco-Tech Glasshouse · low animation)
+ * RELIVO — Register (Eco-Tech Glasshouse · low animation)
  * Mirrors Login visual language; adds name, organization, location fields.
  */
 import { useEffect, useState } from "react";
@@ -42,7 +42,7 @@ export default function Register() {
     setTimeout(() => {
       login(role, name.trim());
       setBusy(false);
-      toast.success(`Account created! Welcome to ReUseNet AI, ${name.trim().split(" ")[0]}.`);
+      toast.success(`Account created! Welcome to RELIVO, ${name.trim().split(" ")[0]}.`);
       navigate(role === "admin" ? "/admin" : role === "donor" ? "/donor" : "/recipient");
     }, 600);
   };
@@ -57,9 +57,9 @@ export default function Register() {
 
         <div className="rise-in relative w-full max-w-md px-4">
           <div className="mb-6 flex flex-col items-center">
-            <img src={LOGO} alt="ReUseNet AI logo" className="h-12 w-12" />
+            <img src={LOGO} alt="RELIVO logo" className="h-12 w-12" />
             <p className="mt-3 font-display text-xl font-bold">
-              ReUseNet <span className="text-accent">AI</span>
+              RELIVO
             </p>
             <p className="mt-1 text-sm text-muted-foreground">Join the circular resource network.</p>
           </div>

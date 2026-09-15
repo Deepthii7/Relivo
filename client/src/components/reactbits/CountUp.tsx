@@ -1,4 +1,4 @@
-/* ReUseNet AI — CountUp (React Bits), adapted to Tailwind 4 + React 19
+/* RELIVO — CountUp (React Bits), adapted to Tailwind 4 + React 19
  * Counts numbers when scrolled into view; used on landing stats, dashboards,
  * AI recommendation scores, and analytics KPIs. */
 import { useEffect, useRef, useState } from "react";

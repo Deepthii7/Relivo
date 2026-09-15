@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Dashboard layout (Eco-Tech Glasshouse)
+ * RELIVO — Dashboard layout (Eco-Tech Glasshouse)
  * Fixed left sidebar (role-aware) with glass treatment, content area on the right.
  * Usability-first: clean spacing, soft shadows, precise typography.
  */
@@ -62,9 +62,9 @@ export default function DashboardLayout({ children, title }: { children: React.R
       {/* Sidebar */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-border bg-sidebar lg:flex">
         <div className="flex h-16 items-center gap-2.5 border-b border-border px-5">
-          <img src={LOGO} alt="ReUseNet AI logo" className="h-7 w-7 rounded-lg bg-white/90 p-0.5" />
+          <img src={LOGO} alt="RELIVO logo" className="h-7 w-7 rounded-lg bg-white/90 p-0.5" />
           <div className="leading-tight">
-            <p className="font-display text-base font-bold">ReUseNet <span className="text-accent">AI</span></p>
+            <p className="font-display text-base font-bold">RELIVO</p>
             <p className={`text-[11px] font-medium ${meta.color}`}>{meta.label}</p>
           </div>
         </div>
@@ -117,8 +117,8 @@ export default function DashboardLayout({ children, title }: { children: React.R
         <div className="px-4 pb-10 pt-20 sm:px-6 lg:px-8">
           <div className="mb-6 flex items-center justify-between gap-3 lg:hidden">
             <div className="flex items-center gap-2.5">
-              <img src={LOGO} alt="ReUseNet AI logo" className="h-7 w-7 rounded-lg bg-white/90 p-0.5" />
-              <p className="font-display font-bold">ReUseNet <span className="text-accent">AI</span></p>
+              <img src={LOGO} alt="RELIVO logo" className="h-7 w-7 rounded-lg bg-white/90 p-0.5" />
+              <p className="font-display font-bold">RELIVO</p>
             </div>
             <nav className="flex flex-wrap gap-1">
               {nav.slice(0, 4).map((item) => (

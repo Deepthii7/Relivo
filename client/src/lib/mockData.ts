@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Mock data layer ("Eco-Tech Glasshouse")
+ * RELIVO — Mock data layer ("Eco-Tech Glasshouse")
  * Simulates the backend entities described in the project handoff:
  * Users, Resources, Requests, Donations, Notifications, AI Recommendations, Analytics.
  * All frontend flows (auth, dashboards, browse, request, AI) work against this data.
@@ -195,5 +195,5 @@ export const CONDITIONS: ResourceCondition[] = ["Like New", "Good", "Fair", "Nee
 export const DEMO_USERS: Record<Role, User> = {
   donor: { id: 2, name: "Priya Sharma", email: "priya@techflow.io", role: "donor", organization: "TechFlow Systems Pvt. Ltd.", location: "Koramangala, Bangalore" },
   recipient: { id: 10, name: "Zayed Ahmed", email: "zayed@school47.edu.in", role: "recipient", organization: "Government School No. 47, Bangalore", location: "HSR Layout, Bangalore" },
-  admin: { id: 1, name: "Platform Admin", email: "admin@reusenet.ai", role: "admin", organization: "ReUseNet AI", location: "Bangalore, India" },
+  admin: { id: 1, name: "Platform Admin", email: "admin@relivo.ai", role: "admin", organization: "RELIVO", location: "Bangalore, India" },
 };

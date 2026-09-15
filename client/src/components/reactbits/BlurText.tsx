@@ -1,4 +1,4 @@
-/* ReUseNet AI — BlurText (React Bits), adapted to Tailwind 4 + React 19 */
+/* RELIVO — BlurText (React Bits), adapted to Tailwind 4 + React 19 */
 import { useEffect, useRef, useState } from "react";
 
 interface BlurTextProps {

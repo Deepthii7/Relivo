@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Upload Resource (Eco-Tech Glasshouse · low animation, usability-first)
+ * RELIVO — Upload Resource (Eco-Tech Glasshouse · low animation, usability-first)
  * Form: title, category, description, quantity, condition, location, image.
  * Subtle entrance, drop-zone styling, success feedback toast.
  */

@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — AI Recommendations (Eco-Tech Glasshouse · medium/high animation)
+ * RELIVO — AI Recommendations (Eco-Tech Glasshouse · medium/high animation)
  * Feels intelligent, not gimmicky: spotlight cards, gradient "computed" borders,
  * CountUp scores, reason chips, demand/urgency/distance metadata.
  */

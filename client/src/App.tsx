@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Routing (Eco-Tech Glasshouse)
+ * RELIVO — Routing (Eco-Tech Glasshouse)
  * Marketing: Home, About, Login, Register, Browse, Resource details, Analytics.
  * App (role-gated): Donor / Recipient / Admin dashboards, Upload, Requests,
  * Request flow, AI Recommendations, Notifications.

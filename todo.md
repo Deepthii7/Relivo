@@ -1,4 +1,4 @@
-# ReUseNet AI — Revert to original emerald design + fix React Bits imports
+# RELIVO — Revert to original emerald design + fix React Bits imports
 
 ## Phase 1: Fix missing React Bits components
 - [ ] Create Aurora.tsx (canvas aurora animation, used in Home.tsx hero background)

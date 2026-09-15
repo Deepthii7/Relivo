@@ -1,4 +1,4 @@
-/* ReUseNet AI — SpotlightCard (React Bits), adapted to Tailwind 4 + React 19
+/* RELIVO — SpotlightCard (React Bits), adapted to Tailwind 4 + React 19
  * Emerald-tinted spotlight follows the cursor; used on landing feature cards
  * and dashboard stats per the React Bits usage map. */
 import { useRef, useState } from "react";

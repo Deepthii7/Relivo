@@ -1,4 +1,4 @@
-/* ReUseNet AI — Magnet (React Bits), adapted to Tailwind 4 + React 19
+/* RELIVO — Magnet (React Bits), adapted to Tailwind 4 + React 19
  * Used sparingly: only on landing page CTAs per the usage map. */
 import { useRef, useState } from "react";
 

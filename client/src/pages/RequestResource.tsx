@@ -1,5 +1,5 @@
 /*
- * ReUseNet AI — Request Resource (Eco-Tech Glasshouse · low/medium animation)
+ * RELIVO — Request Resource (Eco-Tech Glasshouse · low/medium animation)
  * 3-step flow: selected resource → quantity & requirements → submit & status.
  * Subtle step transitions, clear progress indicator.
  */

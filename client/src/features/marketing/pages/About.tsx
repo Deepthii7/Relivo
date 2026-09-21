@@ -40,10 +40,10 @@ export default function About() {
                 className="font-display text-4xl font-bold leading-[1.1] tracking-tight sm:text-5xl"
               />
               <p className="mt-5 text-base leading-relaxed text-muted-foreground">
-                ReUseNet AI is a community-driven resource exchange platform that connects people, companies, colleges and institutions with schools, NGOs and community organizations that can make use of their unwanted but reusable resources.
+                RELIVO is a community-driven resource exchange platform that connects people, companies, colleges and institutions with schools, NGOs and community organizations that can make use of their unwanted but reusable resources.
               </p>
               <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                Beyond simply listing resources, ReUseNet AI helps make the process of finding, sharing and receiving useful items easier — helping resources reach communities where they can make the greatest difference.
+                Beyond simply listing resources, RELIVO helps make the process of finding, sharing and receiving useful items easier — helping resources reach communities where they can make the greatest difference.
               </p>
               <div className="mt-7">
                 <Link href="/register">
@@ -85,9 +85,9 @@ export default function About() {
           <div>
             <ScrollReveal>
               <p className="mb-2 text-sm font-semibold uppercase tracking-widest text-primary">The Science Behind It</p>
-              <h2 className="font-display text-3xl font-bold leading-tight sm:text-4xl">How ReUseNet Makes a Difference</h2>
+              <h2 className="font-display text-3xl font-bold leading-tight sm:text-4xl">How RELIVO Makes a Difference</h2>
               <p className="mt-4 leading-relaxed text-muted-foreground">
-                ReUseNet AI uses smart matching and prioritization to connect available resources with genuine community needs, helping make the process of sharing and receiving resources more efficient.
+                RELIVO uses smart matching and prioritization to connect available resources with genuine community needs, helping make the process of sharing and receiving resources more efficient.
               </p>
             </ScrollReveal>
             <div className="mt-8 grid gap-4 sm:grid-cols-2">
@@ -103,7 +103,7 @@ export default function About() {
             <div className="rounded-3xl border border-emerald-100 bg-white p-8 shadow-xl shadow-emerald-900/5">
               <h3 className="font-display text-xl font-bold">Why it matters</h3>
               <p className="mt-3 text-sm leading-relaxed text-muted-foreground">
-                A useful item shouldn't become waste simply because its owner no longer needs it. ReUseNet AI helps keep resources moving — from people who have more than they need to communities that can put them to good use.
+                A useful item shouldn't become waste simply because its owner no longer needs it. RELIVO helps keep resources moving — from people who have more than they need to communities that can put them to good use.
               </p>
               <div className="mt-6 flex flex-wrap gap-2">
                 {["Reduce waste • Encourage reuse • Support communities • Improve access"].map((tag) => (

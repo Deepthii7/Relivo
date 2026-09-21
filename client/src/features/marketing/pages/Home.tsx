@@ -86,7 +86,7 @@ export default function Home() {
               to={{ opacity: 1, y: 0 }}
             />
             <BlurText
-              text="ReUseNet AI connects people and organizations with useful resources to the schools, NGOs and communities that need them most. Give what you don't need. Find what you do."
+              text="RELIVO connects people and organizations with useful resources to the schools, NGOs and communities that need them most. Give what you don't need. Find what you do."
               delay={70}
               className="mt-5 text-base leading-relaxed text-muted-foreground sm:text-lg"
             />
@@ -149,7 +149,7 @@ export default function Home() {
                 Laptops, books, furniture, projectors, sports equipment and countless other useful items often go unused when someone no longer needs them. At the same time, schools, NGOs and community organizations struggle to access the resources they need.
               </p>
               <p className="mt-3 text-base leading-relaxed text-muted-foreground">
-                ReUseNet AI makes it easier to move these resources where they can make a real difference — turning unused belongings into opportunities for someone else.
+                RELIVO makes it easier to move these resources where they can make a real difference — turning unused belongings into opportunities for someone else.
               </p>
             </ScrollReveal>
           </div>
@@ -167,7 +167,7 @@ export default function Home() {
                   Making Every Resource Count
                 </h2>
                 <p className="mt-4 leading-relaxed text-muted-foreground">
-                  Finding the right home for an unused resource shouldn't be difficult. ReUseNet AI helps connect available resources with genuine community needs, making it easier for people and organizations to give, discover and share what matters.
+                  Finding the right home for an unused resource shouldn't be difficult. RELIVO helps connect available resources with genuine community needs, making it easier for people and organizations to give, discover and share what matters.
                 </p>
               </ScrollReveal>
             </div>
@@ -253,7 +253,7 @@ export default function Home() {
               Give unused resources a second life.
             </h2>
             <p className="mx-auto mt-4 max-w-xl text-base leading-relaxed text-muted-foreground">
-              Join donors, schools, NGOs and community organizations already circulating resources through ReUseNet AI.
+              Join donors, schools, NGOs and community organizations already circulating resources through RELIVO.
             </p>
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
               <Magnet padding={60} magnetStrength={30}>

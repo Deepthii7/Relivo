@@ -15,7 +15,7 @@ import { toast } from "sonner";
 import { StatusBadge, ResourceImage } from "@/components/primitives";
 import { RESOURCES } from "@/lib/mockData";
 import RoleGate, { AnySession } from "@/components/RoleGate";
-import NotFound from "@/pages/NotFound";
+import NotFound from "@/features/dashboard/pages/NotFound";
 
 const STEPS = ["Resource", "Details", "Confirmation"];
 

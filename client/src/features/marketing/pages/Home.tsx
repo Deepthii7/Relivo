@@ -106,7 +106,7 @@ export default function Home() {
             </div>
             <p className="mt-6 flex items-center gap-2 text-xs font-medium text-muted-foreground">
               <Layers className="h-4 w-4 text-primary" />
-              React · FastAPI · MySQL · scikit-learn · Priority Queue · Graph · Dijkstra
+              React · FastAPI · MySQL · scikit-learn · Priority Queue · Graph 
             </p>
           </div>
           <AnimatedContent distance={80} duration={0.9} className="relative hidden md:block">

@@ -6,26 +6,26 @@
  */
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import NotFound from "@/pages/NotFound";
+import NotFound from "@/features/dashboard/pages/NotFound";
 import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ThemeProvider } from "./contexts/ThemeContext";
-import Home from "./pages/Home";
-import About from "./pages/About";
-import Login from "./pages/Login";
-import Register from "./pages/Register";
-import BrowseResources from "./pages/BrowseResources";
-import ResourceDetails from "./pages/ResourceDetails";
-import Analytics from "./pages/Analytics";
-import DonorDashboard from "./pages/DonorDashboard";
-import RecipientDashboard from "./pages/RecipientDashboard";
-import AdminDashboard from "./pages/AdminDashboard";
-import UploadResource from "./pages/UploadResource";
-import Requests from "./pages/Requests";
-import RequestResource from "./pages/RequestResource";
-import Recommendations from "./pages/Recommendations";
-import Notifications from "./pages/Notifications";
+import Home from "./features/marketing/pages/Home";
+import About from "./features/marketing/pages/About";
+import Login from "./features/auth/pages/Login";
+import Register from "./features/auth/pages/Register";
+import BrowseResources from "./features/resources/pages/BrowseResources";
+import ResourceDetails from "./features/resources/pages/ResourceDetails";
+import Analytics from "./features/marketing/pages/Analytics";
+import DonorDashboard from "./features/dashboard/pages/DonorDashboard";
+import RecipientDashboard from "./features/dashboard/pages/RecipientDashboard";
+import AdminDashboard from "./features/dashboard/pages/AdminDashboard";
+import UploadResource from "./features/resources/pages/UploadResource";
+import Requests from "./features/requests/pages/Requests";
+import RequestResource from "./features/requests/pages/RequestResource";
+import Recommendations from "./features/dashboard/pages/Recommendations";
+import Notifications from "./features/dashboard/pages/Notifications";
 
 
 function Router() {

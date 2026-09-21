@@ -9,7 +9,7 @@ import SiteFooter from "@/components/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, CategoryIcon, ResourceImage } from "@/components/primitives";
 import { RESOURCES } from "@/lib/mockData";
-import NotFound from "@/pages/NotFound";
+import NotFound from "@/features/dashboard/pages/NotFound";
 
 export default function ResourceDetails() {
   const params = useParams<{ id: string }>();

@@ -20,17 +20,17 @@ function Textarea({
     onKeyDown: handleKeyDown,
   } = useComposition<HTMLTextAreaElement>({
     onKeyDown: (e) => {
-      // Check if this is an Enter key that should be blocked
-      const isComposing = (e.nativeEvent as any).isComposing || dialogComposition.justEndedComposing();
+      // Check if this is an Enter key that should be blocked.
+      const isComposing = e.nativeEvent.isComposing || dialogComposition.justEndedComposing();
 
       // If Enter key is pressed while composing or just after composition ended,
-      // don't call the user's onKeyDown (this blocks the business logic)
-      // Note: For textarea, Shift+Enter should still work for newlines
+      // don't call the user's onKeyDown (this blocks the business logic).
+      // Note: For textarea, Shift+Enter should still work for newlines.
       if (e.key === "Enter" && !e.shiftKey && isComposing) {
         return;
       }
 
-      // Otherwise, call the user's onKeyDown
+      // Otherwise, call the user's onKeyDown.
       onKeyDown?.(e);
     },
     onCompositionStart: e => {

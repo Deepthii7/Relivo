@@ -5,14 +5,14 @@
  */
 import { Link } from "wouter";
 import { PackageSearch, ListChecks, Sparkles, CheckCircle2, Zap, ArrowRight } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import CountUp from "@/components/reactbits/CountUp";
 import { AIBadge, StatusBadge } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { REQUESTS, AI_RECOMMENDATIONS } from "@/lib/mockData";
-import RoleGate from "@/components/RoleGate";
+import RoleGate from "@/components/role-gating/RoleGate";
 
 export default function RecipientDashboard() {
   const { user } = useAuth();

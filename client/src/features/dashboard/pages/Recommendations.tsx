@@ -5,13 +5,13 @@
  */
 import { Link } from "wouter";
 import { Sparkles, Zap, MapPin, Package, History, ArrowRight, BrainCircuit, ShieldCheck } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import CountUp from "@/components/reactbits/CountUp";
 import { AIBadge } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { AI_RECOMMENDATIONS } from "@/lib/mockData";
-import RoleGate, { AnySession } from "@/components/RoleGate";
+import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 
 const DRAIN = { High: "text-emerald-700 bg-emerald-50", Medium: "text-orange-700 bg-orange-50", Low: "text-slate-600 bg-slate-100" };
 const URGENCY = { Critical: "text-red-700 bg-red-50", High: "text-orange-700 bg-orange-50", Normal: "text-sky-700 bg-sky-50" };

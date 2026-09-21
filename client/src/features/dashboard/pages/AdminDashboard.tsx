@@ -5,12 +5,12 @@
 import { Link } from "wouter";
 import { Users, Package, Inbox, CheckCircle2, ArrowRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import CountUp from "@/components/reactbits/CountUp";
 import { StatusBadge } from "@/components/primitives";
 import { ANALYTICS, REQUESTS } from "@/lib/mockData";
-import RoleGate from "@/components/RoleGate";
+import RoleGate from "@/components/role-gating/RoleGate";
 
 const ACTIVITY = [
   { time: "09:12", event: "Request #1 approved — Refurbished Laptops ×10 → Government School No. 47", tag: "approved" },

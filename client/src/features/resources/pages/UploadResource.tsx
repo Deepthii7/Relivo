@@ -6,14 +6,14 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { UploadCloud, CheckCircle2, Loader2 } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import RoleGate, { AnySession } from "@/components/RoleGate";
+import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 import { CATEGORIES, CONDITIONS } from "@/lib/mockData";
 
 export default function UploadResource() {

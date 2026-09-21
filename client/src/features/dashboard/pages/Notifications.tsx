@@ -5,13 +5,13 @@
  */
 import { useState } from "react";
 import { CheckCheck, Bell, FileText, Zap, Truck, CheckCircle2, XCircle, Sparkles, Inbox } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { NOTIFICATIONS, type NotificationType } from "@/lib/mockData";
-import RoleGate, { AnySession } from "@/components/RoleGate";
+import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 
 const TYPE_META: Record<NotificationType, { icon: React.ReactNode; tone: string; label: string }> = {
   approved: { icon: <CheckCircle2 className="h-4 w-4" />, tone: "bg-emerald-50 text-emerald-600", label: "Approved" },

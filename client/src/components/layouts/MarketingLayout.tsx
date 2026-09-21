@@ -1,6 +1,6 @@
 /* RELIVO — Marketing layout: header + page + footer */
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/shared/SiteHeader";
+import SiteFooter from "@/components/shared/SiteFooter";
 
 export default function MarketingLayout({ children }: { children: React.ReactNode }) {
   return (

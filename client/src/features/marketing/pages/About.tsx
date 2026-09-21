@@ -4,7 +4,7 @@
  */
 import { Link } from "wouter";
 import { ArrowRight, Target, Users, ShieldCheck, BrainCircuit, Recycle, Leaf } from "lucide-react";
-import MarketingLayout from "@/components/MarketingLayout";
+import MarketingLayout from "@/components/layouts/MarketingLayout";
 import ScrollReveal from "@/components/reactbits/ScrollReveal";
 import BlurText from "@/components/reactbits/BlurText";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";

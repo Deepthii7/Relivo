@@ -6,7 +6,7 @@
 import { useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { CheckCircle2, Loader2, ShieldCheck, Clock3, ListOrdered } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -14,7 +14,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { StatusBadge, ResourceImage } from "@/components/primitives";
 import { RESOURCES } from "@/lib/mockData";
-import RoleGate, { AnySession } from "@/components/RoleGate";
+import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 import NotFound from "@/features/dashboard/pages/NotFound";
 
 const STEPS = ["Resource", "Details", "Confirmation"];

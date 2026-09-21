@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
 import { LogIn, Loader2, Sparkles } from "lucide-react";
-import MarketingLayout from "@/components/MarketingLayout";
+import MarketingLayout from "@/components/layouts/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

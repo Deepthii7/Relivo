@@ -4,8 +4,8 @@
  */
 import { Link, useParams } from "wouter";
 import { ArrowLeft, MapPin, Package, Tag, User, Clock, TrendingUp, Zap } from "lucide-react";
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
+import SiteHeader from "@/components/shared/SiteHeader";
+import SiteFooter from "@/components/shared/SiteFooter";
 import { Button } from "@/components/ui/button";
 import { StatusBadge, CategoryIcon, ResourceImage } from "@/components/primitives";
 import { RESOURCES } from "@/lib/mockData";

@@ -6,13 +6,13 @@
 import { useState } from "react";
 import { Link } from "wouter";
 import { Check, X, ArrowRight } from "lucide-react";
-import DashboardLayout from "@/components/DashboardLayout";
+import DashboardLayout from "@/components/layouts/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/primitives";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { REQUESTS, DONATIONS, type Request, type RequestStatus } from "@/lib/mockData";
-import RoleGate, { AnySession } from "@/components/RoleGate";
+import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 
 export default function Requests() {
   const { user } = useAuth();

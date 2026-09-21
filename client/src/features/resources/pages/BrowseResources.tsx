@@ -5,9 +5,9 @@
  */
 import { useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
-import SiteHeader from "@/components/SiteHeader";
-import SiteFooter from "@/components/SiteFooter";
-import ResourceCard from "@/components/ResourceCard";
+import SiteHeader from "@/components/shared/SiteHeader";
+import SiteFooter from "@/components/shared/SiteFooter";
+import ResourceCard from "@/components/shared/ResourceCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { CATEGORIES, CONDITIONS, RESOURCES, type ResourceCondition } from "@/lib/mockData";

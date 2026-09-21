@@ -9,7 +9,7 @@ import {
   ArrowRight, BrainCircuit, ListOrdered, Network, Database, Cpu, Recycle,
   HandHeart, Building2, Leaf, TrendingUp, Truck, CheckCircle2, Layers,
 } from "lucide-react";
-import MarketingLayout from "@/components/MarketingLayout";
+import MarketingLayout from "@/components/layouts/MarketingLayout";
 import Aurora from "@/components/reactbits/Aurora";
 import SplitText from "@/components/reactbits/SplitText";
 import BlurText from "@/components/reactbits/BlurText";

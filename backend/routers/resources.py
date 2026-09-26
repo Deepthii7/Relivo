@@ -1,16 +1,14 @@
-from fastapi import FastAPI
+from fastapi import APIRouter
 from pydantic import BaseModel
 
-from algorithms.matching import find_matches
-from database.connection import Base, engine, SessionLocal
+from database.connection import SessionLocal
 from models.resource import ResourceDB
 
 
-# Create database tables
-Base.metadata.create_all(bind=engine)
-
-# Create Relivo application
-app = FastAPI(title="Relivo")
+router = APIRouter(
+    prefix="/resources",
+    tags=["Resources"]
+)
 
 
 class Resource(BaseModel):
@@ -20,14 +18,7 @@ class Resource(BaseModel):
     location: str
 
 
-@app.get("/")
-def root():
-    return {
-        "message": "Relivo AI backend is running!"
-    }
-
-
-@app.post("/resources")
+@router.post("/")
 def add_resource(resource: Resource):
     db = SessionLocal()
 
@@ -45,17 +36,11 @@ def add_resource(resource: Resource):
 
     return {
         "message": "Resource added successfully!",
-        "resource": {
-            "id": new_resource.id,
-            "name": new_resource.name,
-            "category": new_resource.category,
-            "quantity": new_resource.quantity,
-            "location": new_resource.location
-        }
+        "resource": resource
     }
 
 
-@app.get("/resources")
+@router.get("/")
 def get_all_resources():
     db = SessionLocal()
 
@@ -79,7 +64,7 @@ def get_all_resources():
     }
 
 
-@app.get("/resources/search")
+@router.get("/search")
 def search_resources(
     name: str = None,
     category: str = None,
@@ -90,19 +75,13 @@ def search_resources(
     query = db.query(ResourceDB)
 
     if name:
-        query = query.filter(
-            ResourceDB.name.ilike(f"%{name}%")
-        )
+        query = query.filter(ResourceDB.name.ilike(f"%{name}%"))
 
     if category:
-        query = query.filter(
-            ResourceDB.category.ilike(category)
-        )
+        query = query.filter(ResourceDB.category.ilike(category))
 
     if location:
-        query = query.filter(
-            ResourceDB.location.ilike(location)
-        )
+        query = query.filter(ResourceDB.location.ilike(location))
 
     resources = query.all()
 
@@ -124,17 +103,18 @@ def search_resources(
     }
 
 
-@app.get("/resources/match")
+@router.get("/match")
 def match_resources(category: str, location: str):
     db = SessionLocal()
 
     resources = db.query(ResourceDB).all()
 
-    matches = find_matches(
-        resources,
-        category,
-        location
-    )
+    matches = [
+        resource
+        for resource in resources
+        if resource.category.lower() == category.lower()
+        and resource.location.lower() == location.lower()
+    ]
 
     result = [
         {

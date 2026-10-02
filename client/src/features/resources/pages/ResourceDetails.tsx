@@ -2,19 +2,41 @@
  * RELIVO — Resource Details (Eco-Tech Glasshouse · medium animation)
  * Image with subtle hover lift, full resource metadata, donor card, clear CTA.
  */
+import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, MapPin, Package, Tag, User, Clock, TrendingUp, Zap } from "lucide-react";
 import SiteHeader from "@/components/shared/SiteHeader";
 import SiteFooter from "@/components/shared/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { StatusBadge, CategoryIcon, ResourceImage } from "@/components/primitives";
-import { RESOURCES } from "@/lib/mockData";
+import { StatusBadge, CategoryIcon, ResourceImage, LoadingState } from "@/components/primitives";
+import type { Resource } from "@/lib/mockData";
+import { getResource } from "@/lib/api";
 import NotFound from "@/features/dashboard/pages/NotFound";
 
 export default function ResourceDetails() {
   const params = useParams<{ id: string }>();
-  const resource = RESOURCES.find((r) => String(r.id) === params.id);
+  const [resource, setResource] = useState<Resource | null>(null);
+  const [loading, setLoading] = useState(true);
 
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    getResource(Number(params.id))
+      .then((item) => {
+        if (active) setResource(item);
+      })
+      .catch(() => {
+        if (active) setResource(null);
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [params.id]);
+
+  if (loading) return <LoadingState label="Loading resource…" />;
   if (!resource) return <NotFound />;
 
   return (
@@ -35,7 +57,7 @@ export default function ResourceDetails() {
                 {[
                   { icon: <Package className="h-4 w-4" />, label: "Quantity", value: `×${resource.quantity}` },
                   { icon: <Tag className="h-4 w-4" />, label: "Category", value: resource.category },
-                  { icon: <MapPin className="h-4 w-4" />, label: "Location", value: `${resource.distanceKm} km` },
+                  { icon: <MapPin className="h-4 w-4" />, label: "Location", value: resource.location },
                   { icon: <Clock className="h-4 w-4" />, label: "Uploaded", value: `${resource.uploadedDaysAgo}d ago` },
                 ].map((m) => (
                   <div key={m.label} className="rounded-xl border border-border bg-white p-4">
@@ -67,13 +89,15 @@ export default function ResourceDetails() {
                   <p className="text-sm text-muted-foreground">{resource.donorOrg}</p>
                 </div>
 
-                <div className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50/70 p-4 text-sm text-emerald-800">
-                  <TrendingUp className="h-4 w-4 shrink-0" />
-                  <span><strong>{resource.requestedCount}</strong> organizations have already requested this resource</span>
-                </div>
+                {resource.requestedCount > 0 && (
+                  <div className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50/70 p-4 text-sm text-emerald-800">
+                    <TrendingUp className="h-4 w-4 shrink-0" />
+                    <span><strong>{resource.requestedCount}</strong> organizations have requested this resource</span>
+                  </div>
+                )}
 
                 <div className="mt-6 space-y-3">
-                  {resource.status === "Available" ? (
+                  {resource.quantity > 0 ? (
                     <Link href={`/request/${resource.id}`}>
                       <Button size="lg" className="w-full rounded-xl text-base transition-transform active:scale-[0.97]">
                         <Zap className="mr-1.5 h-4 w-4" /> Request This Resource
@@ -85,7 +109,7 @@ export default function ResourceDetails() {
                     </Button>
                   )}
                   <p className="text-center text-xs text-muted-foreground">
-                    Requests are evaluated by the AI engine and ordered by the priority queue.
+                    Requests are ordered by urgency and waiting time in the priority queue.
                   </p>
                 </div>
               </div>

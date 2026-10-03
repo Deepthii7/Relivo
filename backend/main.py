@@ -11,7 +11,9 @@ from algorithms.matching import find_matches
 from database.connection import Base, engine, get_db
 from models.request import RequestDB
 from models.resource import ResourceDB
+from schemas.impact_summary import ImpactSummary
 from schemas.recommendation import RecommendationResponse
+from services.impact_summary import get_impact_summary
 from services.recommendation_service import generate_recommendations
 from services.request_workflow import URGENCY_PRIORITIES, decide_request, schedule_requests
 
@@ -192,6 +194,11 @@ def get_recommendations(
     db: Session = Depends(get_db),
 ):
     return generate_recommendations(db, recipient_id)
+
+
+@app.get("/analytics/summary", response_model=ImpactSummary)
+def get_analytics_summary(db: Session = Depends(get_db)):
+    return get_impact_summary(db)
 
 
 def serialize_request(request: RequestDB, priority: float | None = None) -> dict:

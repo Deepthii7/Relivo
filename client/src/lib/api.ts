@@ -84,6 +84,14 @@ export interface Recommendation {
   previousDonations: number | null;
 }
 
+export interface ImpactSummary {
+  resourcesListed: number;
+  organizationsRepresented: number;
+  completedDonations: number | null;
+  resourceUtilizationPercent: number | null;
+  categoryQuantities: Record<string, number>;
+}
+
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -136,6 +144,23 @@ function toRequest(request: ApiRequest): Request {
 export async function getResources(): Promise<Resource[]> {
   const result = await apiRequest<{ resources: ApiResource[] }>("/resources");
   return result.resources.map(toResource);
+}
+
+export async function getImpactSummary(): Promise<ImpactSummary> {
+  const result = await apiRequest<{
+    resources_listed: number;
+    organizations_represented: number;
+    completed_donations: number | null;
+    resource_utilization_percent: number | null;
+    category_quantities: Record<string, number>;
+  }>("/analytics/summary");
+  return {
+    resourcesListed: result.resources_listed,
+    organizationsRepresented: result.organizations_represented,
+    completedDonations: result.completed_donations,
+    resourceUtilizationPercent: result.resource_utilization_percent,
+    categoryQuantities: result.category_quantities,
+  };
 }
 
 export async function getRecommendations(recipientId?: number): Promise<Recommendation[]> {

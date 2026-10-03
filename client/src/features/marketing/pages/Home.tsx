@@ -4,6 +4,7 @@
  * CountUp (stats), AnimatedContent (rows), SpotlightCard + GlareHover (cards), Magnet (CTA),
  * ScrollReveal (sections). Keep motion purposeful — no constant backgrounds on content.
  */
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
   ArrowRight, BrainCircuit, ListOrdered, Network, Database, Cpu, Recycle,
@@ -16,22 +17,15 @@ import BlurText from "@/components/reactbits/BlurText";
 import ScrollReveal from "@/components/reactbits/ScrollReveal";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import GlareHover from "@/components/reactbits/GlareHover";
-import CountUp from "@/components/reactbits/CountUp";
 import AnimatedContent from "@/components/reactbits/AnimatedContent";
 import Magnet from "@/components/reactbits/Magnet";
 import ShinyText from "@/components/reactbits/ShinyText";
 import { Button } from "@/components/ui/button";
+import { getImpactSummary, type ImpactSummary } from "@/lib/api";
 
 const HERO_IMG = "/manus-storage/reusenet-hero_e6fe6164.png";
 const AI_BRAIN_IMG = "/manus-storage/reusenet-ai-brain_1c783303.png";
 const COMMUNITY_IMG = "/manus-storage/reusenet-community_fd23ed55.png";
-
-const STATS = [
-  { value: 1284, suffix: "+", label: "Resources circulated" },
-  { value: 342, suffix: "", label: "Connected organizations" },
-  { value: 812, suffix: "", label: "Donations completed" },
-  { value: 76, suffix: "%", label: "Resource utilization" },
-];
 
 const FEATURES = [
   { icon: <BrainCircuit className="h-5 w-5" />, title: "AI Recipient Matching", desc: "Demand, distance, urgency and donation history converge into one recommendation score — the right resource finds the right recipient." },
@@ -50,15 +44,39 @@ const STEPS = [
 ];
 
 const CATEGORIES = [
-  { name: "Electronics", count: 320 },
-  { name: "Books", count: 285 },
-  { name: "Furniture", count: 246 },
-  { name: "Educational", count: 178 },
-  { name: "Sports", count: 124 },
-  { name: "Materials", count: 89 },
+  { name: "Electronics" },
+  { name: "Books" },
+  { name: "Furniture" },
+  { name: "Educational" },
+  { name: "Sports" },
+  { name: "Materials" },
 ];
 
 export default function Home() {
+  const [impactSummary, setImpactSummary] = useState<ImpactSummary | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getImpactSummary()
+      .then((summary) => {
+        if (active) setImpactSummary(summary);
+      })
+      .catch(() => {
+        if (active) setImpactSummary(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  const stats = [
+    { value: impactSummary?.resourcesListed ?? null, suffix: "", label: "Resources listed" },
+    { value: impactSummary?.organizationsRepresented ?? null, suffix: "", label: "Organizations represented" },
+    { value: impactSummary?.completedDonations ?? null, suffix: "", label: "Donations completed" },
+    { value: impactSummary?.resourceUtilizationPercent ?? null, suffix: "%", label: "Resource utilization" },
+  ];
+  const categoryQuantities = impactSummary?.categoryQuantities;
+
   return (
     <MarketingLayout>
       {/* ===== HERO ===== */}
@@ -122,10 +140,10 @@ export default function Home() {
       {/* ===== STATS ===== */}
       <section className="border-y border-border bg-white/70 backdrop-blur-md shadow-[0_8px_32px_-20px_oklch(0.48_0.11_165/0.35)]">
         <div className="container grid grid-cols-2 gap-6 py-10 md:grid-cols-4">
-          {STATS.map((s) => (
+          {stats.map((s) => (
             <ScrollReveal key={s.label} className="text-center">
               <p className="stat-num text-4xl text-primary sm:text-5xl">
-                <CountUp from={0} to={s.value} duration={1.4} separator="," suffix={s.suffix} />
+                  {s.value === null ? "—" : `${s.value.toLocaleString("en-US")}${s.suffix}`}
               </p>
               <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
             </ScrollReveal>
@@ -233,7 +251,7 @@ export default function Home() {
               <Link key={c.name} href="/browse">
                 <SpotlightCard className="group flex flex-col items-center gap-2 glass-card p-6 text-center transition-transform duration-300 hover:-translate-y-1">
                   <p className="font-display text-2xl font-bold text-primary tabular-nums">
-                    <CountUp from={0} to={c.count} duration={1.1} separator="," />
+                    {categoryQuantities?.[c.name] === undefined ? "—" : categoryQuantities[c.name].toLocaleString("en-US")}
                   </p>
                   <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{c.name}</p>
                 </SpotlightCard>

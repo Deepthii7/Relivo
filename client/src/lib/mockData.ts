@@ -27,7 +27,7 @@ export interface Resource {
   quantity: number;
   condition: ResourceCondition;
   location: string;
-  distanceKm: number;
+  distanceKm?: number;
   status: ResourceStatus;
   donorId: number;
   donorName: string;
@@ -51,6 +51,7 @@ export interface Request {
   status: RequestStatus;
   reason: string;
   createdAt: string;
+  donorId?: number;
 }
 
 export interface Donation {

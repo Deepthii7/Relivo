@@ -3,7 +3,7 @@
  * 3-step flow: selected resource → quantity & requirements → submit & status.
  * Subtle step transitions, clear progress indicator.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useLocation } from "wouter";
 import { CheckCircle2, Loader2, ShieldCheck, Clock3, ListOrdered } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -11,9 +11,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { StatusBadge, ResourceImage } from "@/components/primitives";
-import { RESOURCES } from "@/lib/mockData";
+import { StatusBadge, ResourceImage, LoadingState } from "@/components/primitives";
+import type { Request, Resource } from "@/lib/mockData";
+import { createRequest, getResource } from "@/lib/api";
+import { useAuth } from "@/contexts/AuthContext";
 import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 import NotFound from "@/features/dashboard/pages/NotFound";
 
@@ -21,20 +24,43 @@ const STEPS = ["Resource", "Details", "Confirmation"];
 
 export default function RequestResource() {
   const params = useParams<{ id: string }>();
-  const resource = RESOURCES.find((r) => String(r.id) === params.id);
+  const { user } = useAuth();
+  const [resource, setResource] = useState<Resource | null>(null);
+  const [loadingResource, setLoadingResource] = useState(true);
   const [, navigate] = useLocation();
   const [step, setStep] = useState(0);
   const [quantity, setQuantity] = useState("1");
   const [reason, setReason] = useState("");
+  const [urgency, setUrgency] = useState<"low" | "normal" | "high">("normal");
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [submittedRequest, setSubmittedRequest] = useState<Request | null>(null);
 
+  useEffect(() => {
+    let active = true;
+    setLoadingResource(true);
+    getResource(Number(params.id))
+      .then((item) => {
+        if (active) setResource(item);
+      })
+      .catch(() => {
+        if (active) setResource(null);
+      })
+      .finally(() => {
+        if (active) setLoadingResource(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [params.id]);
+
+  if (loadingResource) return <LoadingState label="Loading resource…" />;
   if (!resource) return <NotFound />;
 
-  const next = () => {
+  const next = async () => {
     if (step === 0) { setStep(1); return; }
     if (step === 1) {
-      if (!quantity || Number(quantity) < 1 || Number(quantity) > resource.quantity) {
+      if (!quantity || !Number.isInteger(Number(quantity)) || Number(quantity) < 1 || Number(quantity) > resource.quantity) {
         toast.error(`Enter a quantity between 1 and ${resource.quantity}.`);
         return;
       }
@@ -43,12 +69,26 @@ export default function RequestResource() {
         return;
       }
       setBusy(true);
-      setTimeout(() => {
-        setBusy(false);
+      try {
+        if (!user) throw new Error("Sign in to submit a request.");
+        const request = await createRequest({
+          resource_id: resource.id,
+          recipient_id: user.id,
+          recipient_name: user.name,
+          recipient_org: user.organization,
+          quantity: Number(quantity),
+          reason: reason.trim(),
+          urgency,
+        });
+        setSubmittedRequest(request);
         setSubmitted(true);
         setStep(2);
         toast.success("Request submitted! It's now in the priority queue for evaluation.");
-      }, 900);
+      } catch (cause) {
+        toast.error(cause instanceof Error ? cause.message : "Could not submit request.");
+      } finally {
+        setBusy(false);
+      }
     }
   };
 
@@ -103,12 +143,25 @@ export default function RequestResource() {
                     <Label htmlFor="reason">Requirement / reason *</Label>
                     <Textarea id="reason" rows={4} value={reason} onChange={(e) => setReason(e.target.value)} placeholder="Tell the donor why your organization needs this and how it will be used…" className="rounded-lg bg-background" />
                   </div>
+                  <div className="space-y-1.5">
+                    <Label>Urgency</Label>
+                    <Select value={urgency} onValueChange={(value: "low" | "normal" | "high") => setUrgency(value)}>
+                      <SelectTrigger className="rounded-lg bg-background">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">Low</SelectItem>
+                        <SelectItem value="normal">Normal</SelectItem>
+                        <SelectItem value="high">High</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   <div className="rounded-xl bg-secondary/50 p-4 text-sm text-muted-foreground">
                     <p className="font-medium text-foreground">How your request is handled</p>
                     <ul className="mt-2 space-y-1.5">
-                      <li className="flex gap-2"><ListOrdered className="mt-0.5 h-4 w-4 shrink-0 text-primary" />Added to the priority queue with an AI-generated priority score.</li>
-                      <li className="flex gap-2"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />Synchronized allocation — concurrent requests never double-assign the same items.</li>
-                      <li className="flex gap-2"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />Reservations time out if unconfirmed, releasing resources (deadlock prevention).</li>
+                      <li className="flex gap-2"><ListOrdered className="mt-0.5 h-4 w-4 shrink-0 text-primary" />Priority scheduling uses urgency, then waiting-time aging to reduce starvation.</li>
+                      <li className="flex gap-2"><ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-primary" />Approval synchronizes inventory updates so concurrent requests cannot over-allocate stock.</li>
+                      <li className="flex gap-2"><Clock3 className="mt-0.5 h-4 w-4 shrink-0 text-primary" />The queue order is recalculated using each request's current wait time.</li>
                     </ul>
                   </div>
                   <Button onClick={next} disabled={busy} className="w-full rounded-lg transition-transform active:scale-[0.97]">
@@ -125,10 +178,11 @@ export default function RequestResource() {
                   </span>
                   <h2 className="mt-4 font-display text-2xl font-bold">Request submitted</h2>
                   <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                    Your request for <strong className="text-foreground">×{quantity} {resource.title}</strong> is now pending. You'll see its status in your dashboard and notifications.
+                    Your request for <strong className="text-foreground">×{quantity} {resource.title}</strong> is now persisted in the request queue.
                   </p>
                   <div className="mt-5 rounded-xl border border-border bg-secondary/40 px-5 py-3 text-sm">
-                    Current status: <StatusBadge status="Pending" className="ml-1.5" />
+                    Current status: <StatusBadge status={submittedRequest?.status ?? "Pending"} className="ml-1.5" />
+                    {submittedRequest && <span className="ml-3 text-muted-foreground">Priority {submittedRequest.priority.toFixed(2)}</span>}
                   </div>
                   <div className="mt-6 flex gap-3">
                     <Button onClick={() => navigate("/recipient")} className="rounded-lg transition-transform active:scale-[0.97]">My Dashboard</Button>

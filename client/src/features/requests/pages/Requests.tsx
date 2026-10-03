@@ -3,7 +3,7 @@
  * Donors see incoming requests on their resources; recipients see their own requests.
  * Admin sees all. Includes approve/reject actions for donors.
  */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Check, X, ArrowRight } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -11,30 +11,66 @@ import { Button } from "@/components/ui/button";
 import { StatusBadge } from "@/components/primitives";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
-import { REQUESTS, DONATIONS, type Request, type RequestStatus } from "@/lib/mockData";
+import type { Request } from "@/lib/mockData";
+import { decideRequest, getRequests } from "@/lib/api";
 import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 
 export default function Requests() {
   const { user } = useAuth();
-  const [items, setItems] = useState<Request[]>(REQUESTS);
+  const [items, setItems] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [busyId, setBusyId] = useState<number | null>(null);
+
+  useEffect(() => {
+    let active = true;
+    getRequests()
+      .then((requests) => {
+        if (active) setItems(requests);
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Could not load requests.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const isDonor = user?.role === "donor";
   const isAdmin = user?.role === "admin";
-  const myDonationTitles = DONATIONS.filter((d) => d.donorId === user?.id).map((d) => d.resourceTitle);
   const visible = items.filter((r) =>
-    isAdmin ? true : isDonor ? myDonationTitles.includes(r.resourceTitle) : r.recipientId === user?.id
+    isAdmin ? true : isDonor ? r.donorId === user?.id : r.recipientId === user?.id
   );
 
-  const decide = (id: number, decision: "Approved" | "Rejected") => {
-    setItems(items.map((r) => (r.id === id ? { ...r, status: decision as RequestStatus } : r)));
-    toast.success(decision === "Approved" ? "Request approved — the resource is now reserved (synchronized allocation)." : "Request rejected — the item stays available for others.");
+  const decide = async (id: number, decision: "approve" | "reject") => {
+    setBusyId(id);
+    try {
+      const updated = await decideRequest(id, decision);
+      setItems((current) => current.map((request) => request.id === id ? updated : request));
+      if (updated.status === "Waitlisted") {
+        toast.error("Not enough inventory for this request; it remains waitlisted.");
+      } else {
+        toast.success(decision === "approve" ? "Request approved and inventory allocated." : "Request rejected.");
+      }
+    } catch (cause) {
+      toast.error(cause instanceof Error ? cause.message : "Could not update request.");
+    } finally {
+      setBusyId(null);
+    }
   };
 
   return (
     <RoleGate allowedRoles={["donor", "recipient", "admin"]}>
       <AnySession>
         <DashboardLayout title={isAdmin ? "All Requests" : isDonor ? "Incoming Requests" : "My Requests"}>
-          {visible.length === 0 ? (
+          {loading ? (
+            <div className="py-20 text-center text-sm text-muted-foreground">Loading requests…</div>
+          ) : error ? (
+            <div className="py-20 text-center text-sm text-destructive">{error}</div>
+          ) : visible.length === 0 ? (
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
               <div className="rounded-full bg-secondary p-4 text-3xl">📋</div>
               <p className="font-display text-lg font-semibold text-muted-foreground">Nothing here yet</p>
@@ -78,16 +114,16 @@ export default function Requests() {
                       </td>
                       <td className="px-5 py-3.5"><StatusBadge status={r.status} /></td>
                       <td className="px-5 py-3.5 text-right">
-                        {isDonor && r.status === "Pending" ? (
+                        {isDonor && (r.status === "Pending" || r.status === "Waitlisted") ? (
                           <div className="flex justify-end gap-1.5">
-                            <Button size="sm" variant="outline" className="h-8 rounded-lg px-3 text-xs text-red-600 hover:bg-red-50" onClick={() => decide(r.id, "Rejected")}>
+                            <Button size="sm" variant="outline" disabled={busyId === r.id} className="h-8 rounded-lg px-3 text-xs text-red-600 hover:bg-red-50" onClick={() => decide(r.id, "reject")}>
                               <X className="h-3.5 w-3.5" /> Reject
                             </Button>
-                            <Button size="sm" className="h-8 rounded-lg px-3 text-xs" onClick={() => decide(r.id, "Approved")}>
+                            <Button size="sm" disabled={busyId === r.id} className="h-8 rounded-lg px-3 text-xs" onClick={() => decide(r.id, "approve")}>
                               <Check className="h-3.5 w-3.5" /> Approve
                             </Button>
                           </div>
-                        ) : !isDonor && r.status === "Pending" ? (
+                        ) : !isDonor && (r.status === "Pending" || r.status === "Waitlisted") ? (
                           <Link href={`/request/${r.resourceId}`}>
                             <Button size="sm" variant="outline" className="h-8 rounded-lg px-3 text-xs">
                               View <ArrowRight className="ml-1 h-3 w-3" />

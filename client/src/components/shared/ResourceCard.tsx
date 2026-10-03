@@ -31,7 +31,9 @@ export default function ResourceCard({ resource, index = 0, highlight = false }:
           <p className="line-clamp-2 text-sm leading-relaxed text-muted-foreground">{resource.description}</p>
           <div className="mt-auto flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
             <span className="flex items-center gap-1"><Package className="h-3.5 w-3.5" />×{resource.quantity}</span>
-            <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{resource.distanceKm} km</span>
+            {resource.distanceKm !== undefined && (
+              <span className="flex items-center gap-1"><MapPin className="h-3.5 w-3.5" />{resource.distanceKm} km</span>
+            )}
             <StatusBadge status={resource.condition} />
           </div>
           <div className="flex items-center justify-between border-t border-border/60 pt-3">

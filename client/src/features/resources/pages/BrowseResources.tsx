@@ -3,37 +3,52 @@
  * Marketplace/catalog feel: search, category/condition/location filters,
  * resource grid with spotlight hover and staggered entrance. Not e-commerce.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import SiteHeader from "@/components/shared/SiteHeader";
 import SiteFooter from "@/components/shared/SiteFooter";
 import ResourceCard from "@/components/shared/ResourceCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CATEGORIES, CONDITIONS, RESOURCES, type ResourceCondition } from "@/lib/mockData";
+import { CATEGORIES, CONDITIONS, type Resource, type ResourceCondition } from "@/lib/mockData";
 import { LoadingState } from "@/components/primitives";
+import { getResources } from "@/lib/api";
 
 export default function BrowseResources() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [condition, setCondition] = useState("Any");
   const [avail, setAvail] = useState("Any");
+  const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
 
-  useMemo(() => {
-    const t = setTimeout(() => setLoading(false), 450);
-    return () => clearTimeout(t);
+  useEffect(() => {
+    let active = true;
+    getResources()
+      .then((items) => {
+        if (active) setResources(items);
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Could not load resources.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const filtered = useMemo(() => {
-    return RESOURCES.filter((r) => {
+    return resources.filter((r) => {
       const matchSearch = !search || r.title.toLowerCase().includes(search.toLowerCase()) || r.description.toLowerCase().includes(search.toLowerCase()) || r.category.toLowerCase().includes(search.toLowerCase());
       const matchCat = category === "All" || r.category === category;
       const matchCond = condition === "Any" || r.condition === (condition as ResourceCondition);
       const matchAvail = avail === "Any" || r.status === avail;
       return matchSearch && matchCat && matchCond && matchAvail;
     });
-  }, [search, category, condition, avail]);
+  }, [resources, search, category, condition, avail]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -41,7 +56,7 @@ export default function BrowseResources() {
       <main className="flex-1">
         <div className="page-header">
           <div className="container py-12 pt-24 md:pt-28">
-            <p className="mb-2 inline-flex items-center gap-1.5 rounded-full ai-chip px-3 py-1 text-xs font-semibold"><span>✦</span> AI-matched · 1,284+ resources circulating</p>
+            <p className="mb-2 inline-flex items-center gap-1.5 rounded-full ai-chip px-3 py-1 text-xs font-semibold"><span>✦</span> Live community inventory</p>
             <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Browse Resources</h1>
             <p className="mt-2 max-w-2xl text-base text-muted-foreground">
               A network of reusable resources waiting for a second life — laptops, books, furniture, equipment and more. Find what your organization needs and request it.
@@ -98,14 +113,9 @@ export default function BrowseResources() {
           </p>
 
           {loading ? (
-            <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {Array.from({ length: 8 }).map((_, i) => (
-                <div key={i} className="animate-pulse rounded-xl border border-border bg-card p-4">
-                  <div className="mb-3 h-36 rounded-lg bg-muted" />
-                  <div className="h-4 w-3/4 rounded bg-muted" />
-                </div>
-              ))}
-            </div>
+            <LoadingState label="Loading resources…" />
+          ) : error ? (
+            <div className="py-20 text-center text-sm text-destructive">{error}</div>
           ) : filtered.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
               <div className="rounded-full bg-secondary p-4 text-3xl">🔍</div>

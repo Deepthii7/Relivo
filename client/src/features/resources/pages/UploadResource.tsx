@@ -15,8 +15,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from "sonner";
 import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 import { CATEGORIES, CONDITIONS } from "@/lib/mockData";
+import { useAuth } from "@/contexts/AuthContext";
+import { createResource } from "@/lib/api";
 
 export default function UploadResource() {
+  const { user } = useAuth();
   const [, navigate] = useLocation();
   const [title, setTitle] = useState("");
   const [category, setCategory] = useState("");
@@ -27,18 +30,33 @@ export default function UploadResource() {
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !category || !quantity || !condition || !location.trim()) {
       toast.error("Please fill in all required fields.");
       return;
     }
     setBusy(true);
-    setTimeout(() => {
+    try {
+      if (!user) throw new Error("Sign in to upload a resource.");
+      await createResource({
+        name: title.trim(),
+        category,
+        quantity: Number(quantity),
+        location: location.trim(),
+        description: description.trim(),
+        condition,
+        donor_id: user.id,
+        donor_name: user.name,
+        donor_org: user.organization,
+      });
       setBusy(false);
       setSubmitted(true);
       toast.success("Resource uploaded! It's now visible to recipients on the network.");
-    }, 700);
+    } catch (cause) {
+      setBusy(false);
+      toast.error(cause instanceof Error ? cause.message : "Could not upload resource.");
+    }
   };
 
   return (
@@ -54,7 +72,7 @@ export default function UploadResource() {
                   </span>
                   <h2 className="mt-4 font-display text-2xl font-bold">Resource listed on the network</h2>
                   <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                    Your donation of "{title}" is now available. Recipients can browse, request, and the AI engine will begin evaluating matches.
+                    Your donation of "{title}" is now available for recipients to browse and request.
                   </p>
                   <div className="mt-6 flex gap-3">
                     <Button onClick={() => navigate("/donor")} className="rounded-lg transition-transform active:scale-[0.97]">Go to Dashboard</Button>
@@ -123,7 +141,7 @@ export default function UploadResource() {
                     {busy ? "Uploading…" : "Upload Resource"}
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">
-                    After upload, your resource enters the AI evaluation queue — recommendations are generated as recipients request it.
+                    After upload, recipients can find your resource in Browse Resources.
                   </p>
                 </form>
               )}

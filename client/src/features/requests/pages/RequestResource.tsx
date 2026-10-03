@@ -185,7 +185,7 @@ export default function RequestResource() {
                     {submittedRequest && <span className="ml-3 text-muted-foreground">Priority {submittedRequest.priority.toFixed(2)}</span>}
                   </div>
                   <div className="mt-6 flex gap-3">
-                    <Button onClick={() => navigate("/recipient")} className="rounded-lg transition-transform active:scale-[0.97]">My Dashboard</Button>
+                    <Button onClick={() => navigate("/requests")} className="rounded-lg transition-transform active:scale-[0.97]">My Requests</Button>
                     <Button variant="outline" className="rounded-lg" onClick={() => navigate("/browse")}>Browse More</Button>
                   </div>
                 </div>

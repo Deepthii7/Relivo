@@ -130,6 +130,9 @@ downloads/
 eggs/
 .eggs/
 lib/
+!client/src/lib/
+!client/src/lib/api.ts
+!client/src/lib/navigation.ts
 lib64/
 parts/
 sdist/

@@ -13,12 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Role } from "@/lib/mockData";
+import { getPostAuthPath } from "@/lib/navigation";
 
 const LOGO = "/manus-storage/reusenet-logo_f3c85d59.png";
 
 export default function Register() {
   const { user, login, isAuthenticated } = useAuth();
   const [location, navigate] = useLocation();
+  const returnTo = new URLSearchParams(window.location.search).get("returnTo");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,9 +30,9 @@ export default function Register() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate(user.role === "admin" ? "/admin" : user.role === "donor" ? "/donor" : "/recipient", { replace: true });
+      navigate(getPostAuthPath(user.role, returnTo), { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, returnTo]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,7 +45,7 @@ export default function Register() {
       login(role, name.trim());
       setBusy(false);
       toast.success(`Account created! Welcome to RELIVO, ${name.trim().split(" ")[0]}.`);
-      navigate(role === "admin" ? "/admin" : role === "donor" ? "/donor" : "/recipient");
+      navigate(getPostAuthPath(role, returnTo));
     }, 600);
   };
 
@@ -104,7 +106,7 @@ export default function Register() {
             </Button>
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Already a member?{" "}
-              <Link href="/login" className="font-medium text-primary hover:underline">Login</Link>
+              <Link href={returnTo ? `/login?returnTo=${encodeURIComponent(returnTo)}` : "/login"} className="font-medium text-primary hover:underline">Login</Link>
             </p>
             <p className="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50/70 px-3 py-2 text-xs text-emerald-800">
               <Sparkles className="h-3.5 w-3.5" /> Demo mode: this creates a local session — explore any dashboard role.

@@ -3,6 +3,7 @@
  * Feels intelligent, not gimmicky: spotlight cards, gradient "computed" borders,
  * CountUp scores, reason chips, demand/urgency/distance metadata.
  */
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Sparkles, Zap, MapPin, Package, History, ArrowRight, BrainCircuit, ShieldCheck } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -11,12 +12,30 @@ import CountUp from "@/components/reactbits/CountUp";
 import { AIBadge } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { AI_RECOMMENDATIONS } from "@/lib/mockData";
+import type { Resource } from "@/lib/mockData";
+import { findRecommendedResource, getResources } from "@/lib/api";
 import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 
 const DRAIN = { High: "text-emerald-700 bg-emerald-50", Medium: "text-orange-700 bg-orange-50", Low: "text-slate-600 bg-slate-100" };
 const URGENCY = { Critical: "text-red-700 bg-red-50", High: "text-orange-700 bg-orange-50", Normal: "text-sky-700 bg-sky-50" };
 
 export default function Recommendations() {
+  const [resources, setResources] = useState<Resource[]>([]);
+
+  useEffect(() => {
+    let active = true;
+    getResources()
+      .then((items) => {
+        if (active) setResources(items);
+      })
+      .catch(() => {
+        if (active) setResources([]);
+      });
+    return () => {
+      active = false;
+    };
+  }, []);
+
   return (
     <RoleGate allowedRoles={["recipient", "admin"]}>
       <AnySession>
@@ -29,7 +48,9 @@ export default function Recommendations() {
           </div>
 
           <div className="space-y-5">
-            {AI_RECOMMENDATIONS.map((rec, i) => (
+            {AI_RECOMMENDATIONS.map((rec, i) => {
+              const resource = findRecommendedResource(resources, rec.resourceTitle);
+              return (
               <SpotlightCard key={rec.id} className="border border-emerald-200/60 bg-white" spotlightColor="rgba(4,108,78,0.16)">
                 <div className="flex flex-col gap-5 p-6 lg:flex-row lg:items-center">
                   <div className="flex items-center gap-5 lg:w-44 lg:shrink-0">
@@ -79,14 +100,15 @@ export default function Recommendations() {
                     </div>
                   </div>
 
-                  <Link href="/request/1" className="lg:shrink-0">
+                  <Link href={resource ? `/request/${resource.id}` : "/browse"} className="lg:shrink-0">
                     <Button className="rounded-lg transition-transform active:scale-[0.97]">
-                      Request <ArrowRight className="ml-1 h-4 w-4" />
+                      {resource ? "Request" : "Browse"} <ArrowRight className="ml-1 h-4 w-4" />
                     </Button>
                   </Link>
                 </div>
               </SpotlightCard>
-            ))}
+              );
+            })}
           </div>
 
           <div className="mt-10 grid gap-5 lg:grid-cols-2">

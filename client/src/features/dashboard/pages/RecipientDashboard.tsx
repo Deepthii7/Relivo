@@ -3,6 +3,7 @@
  * Animated stats, spotlight cards, AI recommendation strip that visually
  * stands out from normal resources (gradient border + AI badge).
  */
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { PackageSearch, ListChecks, Sparkles, CheckCircle2, Zap, ArrowRight } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -11,19 +12,48 @@ import CountUp from "@/components/reactbits/CountUp";
 import { AIBadge, StatusBadge } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { REQUESTS, AI_RECOMMENDATIONS } from "@/lib/mockData";
+import type { Request, Resource } from "@/lib/mockData";
+import { AI_RECOMMENDATIONS } from "@/lib/mockData";
+import { findRecommendedResource, getRequests, getResources } from "@/lib/api";
 import RoleGate from "@/components/role-gating/RoleGate";
 
 export default function RecipientDashboard() {
   const { user } = useAuth();
-  const myRequests = REQUESTS.filter((r) => r.recipientId === user?.id);
-  const pending = myRequests.filter((r) => r.status === "Pending").length;
-  const approved = myRequests.filter((r) => r.status === "Approved" || r.status === "Reserved" || r.status === "Pickup Scheduled").length;
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const userId = user?.id;
+
+  useEffect(() => {
+    if (userId === undefined) return;
+    let active = true;
+    Promise.all([getRequests({ recipientId: userId }), getResources()])
+      .then(([nextRequests, nextResources]) => {
+        if (active) {
+          setRequests(nextRequests);
+          setResources(nextResources);
+        }
+      })
+      .catch((cause: unknown) => {
+        if (active) setError(cause instanceof Error ? cause.message : "Could not load dashboard data.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [userId]);
+
+  const myRequests = requests.filter((request) => request.recipientId === userId);
+  const pending = myRequests.filter((r) => r.status === "Pending" || r.status === "Waitlisted").length;
   const completed = myRequests.filter((r) => r.status === "Completed").length;
   const myRecommendations = AI_RECOMMENDATIONS.slice(0, 2);
+  const availableResources = resources.filter((resource) => resource.status === "Available" && resource.quantity > 0).length;
 
   const stats = [
-    { icon: <PackageSearch className="h-4 w-4" />, label: "Resources Available", value: 11, tone: "text-emerald-700 bg-emerald-50" },
+    { icon: <PackageSearch className="h-4 w-4" />, label: "Resources Available", value: availableResources, tone: "text-emerald-700 bg-emerald-50" },
     { icon: <Sparkles className="h-4 w-4" />, label: "AI Matches for You", value: 4, tone: "text-emerald-700 bg-emerald-50" },
     { icon: <ListChecks className="h-4 w-4" />, label: "Pending Requests", value: pending, tone: "text-orange-700 bg-orange-50" },
     { icon: <CheckCircle2 className="h-4 w-4" />, label: "Completed", value: completed, tone: "text-primary bg-primary/10" },
@@ -37,7 +67,7 @@ export default function RecipientDashboard() {
             <SpotlightCard key={s.label} className="glass-card p-5" spotlightColor="rgba(4,108,78,0.16)">
               <span className={`inline-flex rounded-lg p-2.5 ${s.tone}`}>{s.icon}</span>
               <p className="mt-3 font-display text-2xl font-bold tabular-nums">
-                <CountUp from={0} to={s.value} duration={1.1} />
+                {s.value.toLocaleString("en-US")}
               </p>
               <p className="text-sm text-muted-foreground">{s.label}</p>
             </SpotlightCard>
@@ -55,7 +85,9 @@ export default function RecipientDashboard() {
           </Link>
         </div>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {myRecommendations.map((rec) => (
+          {myRecommendations.map((rec) => {
+            const resource = findRecommendedResource(resources, rec.resourceTitle);
+            return (
             <div key={rec.id} className="relative rounded-2xl border-2 border-transparent bg-gradient-to-r from-emerald-600 via-emerald-500 to-amber-500 p-[2px] shadow-lg shadow-emerald-900/10">
               <div className="rounded-[14px] glass-card p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -82,13 +114,14 @@ export default function RecipientDashboard() {
                     <span>×{rec.quantityRequired} needed</span>
                     <span className="flex items-center gap-1 font-medium text-orange-700"><Zap className="h-3 w-3" />{rec.urgency}</span>
                   </div>
-                  <Link href={`/request/${1}`}>
-                    <Button size="sm" className="rounded-lg transition-transform active:scale-[0.97]">Request</Button>
+                  <Link href={resource ? `/request/${resource.id}` : "/browse"}>
+                    <Button size="sm" className="rounded-lg transition-transform active:scale-[0.97]">{resource ? "Request" : "Browse"}</Button>
                   </Link>
                 </div>
               </div>
             </div>
-          ))}
+            );
+          })}
         </div>
 
         <h2 className="mt-10 font-display text-lg font-semibold">Your Requests</h2>
@@ -111,6 +144,9 @@ export default function RecipientDashboard() {
                   <td className="px-5 py-3.5"><StatusBadge status={r.status} /></td>
                 </tr>
               ))}
+              {loading && <tr><td colSpan={4} className="px-5 py-6 text-center text-muted-foreground">Loading requests…</td></tr>}
+              {!loading && error && <tr><td colSpan={4} className="px-5 py-6 text-center text-destructive">{error}</td></tr>}
+              {!loading && !error && myRequests.length === 0 && <tr><td colSpan={4} className="px-5 py-6 text-center text-muted-foreground">No requests yet.</td></tr>}
             </tbody>
           </table>
         </div>

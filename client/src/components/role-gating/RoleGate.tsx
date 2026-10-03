@@ -17,7 +17,7 @@ const DEV_AUTOLOGIN_ROLE =
 
 export default function RoleGate({ allowedRoles, children }: { allowedRoles: Role[]; children: React.ReactNode }) {
   const { user, isAuthenticated } = useAuth();
-  const [, navigate] = useLocation();
+  const [location, navigate] = useLocation();
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -25,14 +25,15 @@ export default function RoleGate({ allowedRoles, children }: { allowedRoles: Rol
         ((window as unknown as Record<string, (r: Role) => void>).__devAutoLogin)(DEV_AUTOLOGIN_ROLE);
         return;
       }
-      navigate("/login", { replace: true });
+      const returnTo = /^\/request\/\d+$/.test(location) ? `?returnTo=${encodeURIComponent(location)}` : "";
+      navigate(`/login${returnTo}`, { replace: true });
       return;
     }
     if (!user || !allowedRoles.includes(user.role)) {
       const target = user?.role === "admin" ? "/admin" : user?.role === "donor" ? "/donor" : "/recipient";
       navigate(target, { replace: true });
     }
-  }, [isAuthenticated, user, allowedRoles, navigate]);
+  }, [isAuthenticated, user, allowedRoles, location, navigate]);
 
   // While the effect runs (or the session isn't right for this page), show a
   // loading veil instead of rendering a redirect component in the render path.

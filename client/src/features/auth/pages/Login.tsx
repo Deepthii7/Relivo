@@ -13,12 +13,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import type { Role } from "@/lib/mockData";
+import { getPostAuthPath } from "@/lib/navigation";
 
 const LOGO = "/manus-storage/reusenet-logo_f3c85d59.png";
 
 export default function Login() {
   const { user, login, isAuthenticated } = useAuth();
   const [location, navigate] = useLocation();
+  const returnTo = new URLSearchParams(window.location.search).get("returnTo");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [role, setRole] = useState<Role>("donor");
@@ -26,9 +28,9 @@ export default function Login() {
 
   useEffect(() => {
     if (isAuthenticated && user) {
-      navigate(user.role === "admin" ? "/admin" : user.role === "donor" ? "/donor" : "/recipient", { replace: true });
+      navigate(getPostAuthPath(user.role, returnTo), { replace: true });
     }
-  }, [isAuthenticated, user, navigate]);
+  }, [isAuthenticated, user, navigate, returnTo]);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,7 +43,7 @@ export default function Login() {
       login(role, email.split("@")[0].replace(/[^a-zA-Z ]/g, " ").trim());
       setBusy(false);
       toast.success(`Welcome back! Signed in as ${role}.`);
-      navigate(role === "admin" ? "/admin" : role === "donor" ? "/donor" : "/recipient");
+      navigate(getPostAuthPath(role, returnTo));
     }, 600);
   };
 
@@ -93,7 +95,7 @@ export default function Login() {
             </Button>
             <p className="mt-4 text-center text-sm text-muted-foreground">
               New here?{" "}
-              <Link href="/register" className="font-medium text-primary hover:underline">Create an account</Link>
+              <Link href={returnTo ? `/register?returnTo=${encodeURIComponent(returnTo)}` : "/register"} className="font-medium text-primary hover:underline">Create an account</Link>
             </p>
             <p className="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50/70 px-3 py-2 text-xs text-emerald-800">
               <Sparkles className="h-3.5 w-3.5" /> Demo mode: any email/password works — pick a role to explore that dashboard.

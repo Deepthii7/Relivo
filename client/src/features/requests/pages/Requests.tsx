@@ -17,14 +17,18 @@ import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 
 export default function Requests() {
   const { user } = useAuth();
+  const userId = user?.id;
+  const userRole = user?.role;
   const [items, setItems] = useState<Request[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [busyId, setBusyId] = useState<number | null>(null);
 
   useEffect(() => {
+    if (userId === undefined || userRole === undefined) return;
     let active = true;
-    getRequests()
+    const filters = userRole === "donor" ? { donorId: userId } : userRole === "recipient" ? { recipientId: userId } : {};
+    getRequests(filters)
       .then((requests) => {
         if (active) setItems(requests);
       })
@@ -37,7 +41,7 @@ export default function Requests() {
     return () => {
       active = false;
     };
-  }, []);
+  }, [userId, userRole]);
 
   const isDonor = user?.role === "donor";
   const isAdmin = user?.role === "admin";

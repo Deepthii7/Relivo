@@ -31,7 +31,7 @@ const RECIPIENT_NAV: NavItem[] = [
   { href: "/recipient", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
   { href: "/browse", label: "Browse Resources", icon: <PackageSearch className="h-4 w-4" /> },
   { href: "/requests", label: "My Requests", icon: <ListChecks className="h-4 w-4" /> },
-  { href: "/recommendations", label: "AI Recommendations", icon: <Sparkles className="h-4 w-4" /> },
+  { href: "/recommendations", label: "Resource Matches", icon: <Sparkles className="h-4 w-4" /> },
   { href: "/notifications", label: "Notifications", icon: <Bell className="h-4 w-4" /> },
 ];
 
@@ -39,7 +39,7 @@ const ADMIN_NAV: NavItem[] = [
   { href: "/admin", label: "Overview", icon: <LayoutDashboard className="h-4 w-4" /> },
   { href: "/browse", label: "All Resources", icon: <PackageSearch className="h-4 w-4" /> },
   { href: "/requests", label: "All Requests", icon: <ListChecks className="h-4 w-4" /> },
-  { href: "/recommendations", label: "AI Engine", icon: <Sparkles className="h-4 w-4" /> },
+  { href: "/recommendations", label: "Resource Matches", icon: <Sparkles className="h-4 w-4" /> },
   { href: "/notifications", label: "Notifications", icon: <Bell className="h-4 w-4" /> },
   { href: "/analytics", label: "Analytics & Reports", icon: <BarChart3 className="h-4 w-4" /> },
 ];

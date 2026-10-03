@@ -18,7 +18,7 @@ export default function SiteFooter() {
           </p>
           <div className="mt-4 flex items-center gap-2 text-xs font-medium text-primary">
             <RotateCcw className="h-4 w-4" />
-            Powered by AI · DSA · Operating Systems
+            SQLite · DSA · Operating Systems
           </div>
         </div>
         <div>
@@ -26,7 +26,7 @@ export default function SiteFooter() {
           <ul className="space-y-2 text-sm text-emerald-200/80">
             <li><Link href="/browse" className="transition-colors hover:text-white">Browse Resources</Link></li>
             <li><Link href="/register" className="transition-colors hover:text-white">Donate Resources</Link></li>
-            <li><Link href="/recommendations" className="transition-colors hover:text-white">AI Recommendations</Link></li>
+            <li><Link href="/recommendations" className="transition-colors hover:text-white">Resource Matches</Link></li>
             <li><Link href="/analytics" className="transition-colors hover:text-white">Analytics & Reports</Link></li>
           </ul>
         </div>

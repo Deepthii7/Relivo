@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Dependencies
 **/node_modules
 .pnpm-store/
@@ -112,7 +111,6 @@ temp/
 # Manus version file (auto-generated, not part of source)
 client/public/__manus__/version.json
 .project-config.json
-=======
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[codz]
@@ -331,4 +329,6 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
->>>>>>> bcda3e23569807d6cdc456561c37a48447df28bc
+
+# Local database backups
+*.db.backup

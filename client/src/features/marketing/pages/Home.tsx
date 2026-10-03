@@ -4,6 +4,7 @@
  * CountUp (stats), AnimatedContent (rows), SpotlightCard + GlareHover (cards), Magnet (CTA),
  * ScrollReveal (sections). Keep motion purposeful — no constant backgrounds on content.
  */
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import {
   ArrowRight, BrainCircuit, ListOrdered, Network, Database, Cpu, Recycle,
@@ -21,44 +22,48 @@ import AnimatedContent from "@/components/reactbits/AnimatedContent";
 import Magnet from "@/components/reactbits/Magnet";
 import ShinyText from "@/components/reactbits/ShinyText";
 import { Button } from "@/components/ui/button";
+import { apiRequest } from "@/lib/api";
 
 const HERO_IMG = "/manus-storage/reusenet-hero_e6fe6164.png";
 const AI_BRAIN_IMG = "/manus-storage/reusenet-ai-brain_1c783303.png";
 const COMMUNITY_IMG = "/manus-storage/reusenet-community_fd23ed55.png";
 
 const STATS = [
-  { value: 1284, suffix: "+", label: "Resources circulated" },
-  { value: 342, suffix: "", label: "Connected organizations" },
-  { value: 812, suffix: "", label: "Donations completed" },
-  { value: 76, suffix: "%", label: "Resource utilization" },
+  { key: "totalResources", suffix: "", label: "Resources listed" },
+  { key: "totalUsers", suffix: "", label: "Connected organizations" },
+  { key: "completedDonations", suffix: "", label: "Completed requests" },
+  { key: "utilizationRate", suffix: "%", label: "Inventory utilization" },
 ];
 
 const FEATURES = [
-  { icon: <BrainCircuit className="h-5 w-5" />, title: "AI Recipient Matching", desc: "Demand, distance, urgency and donation history converge into one recommendation score — the right resource finds the right recipient." },
-  { icon: <TrendingUp className="h-5 w-5" />, title: "Demand Prediction", desc: "Historical request patterns forecast next-month demand per category, so donors and admins can plan ahead." },
-  { icon: <ListOrdered className="h-5 w-5" />, title: "DSA Prioritization", desc: "Priority queues order urgent requests first, graphs find the nearest recipient, and hash maps make every lookup instant." },
-  { icon: <Cpu className="h-5 w-5" />, title: "OS-Safe Allocation", desc: "Synchronization prevents double-assignment of the same item, and reservation timeouts act as deadlock prevention." },
+  { icon: <BrainCircuit className="h-5 w-5" />, title: "Resource Matching", desc: "Category and location similarity match recipient profiles against currently available database inventory." },
+  { icon: <TrendingUp className="h-5 w-5" />, title: "Live Inventory Signals", desc: "Analytics summarize actual resources, requests, categories and current inventory utilization." },
+  { icon: <ListOrdered className="h-5 w-5" />, title: "Priority & Aging", desc: "Urgent requests start with higher priority, while queue age increases priority over time to prevent starvation." },
+  { icon: <Cpu className="h-5 w-5" />, title: "Synchronized Allocation", desc: "Serialized SQLite transactions prevent duplicate requests and stop concurrent requests from over-allocating inventory." },
 ];
 
 const STEPS = [
   { icon: <HandHeart className="h-5 w-5" />, title: "Donors upload", desc: "List unused laptops, books, furniture or materials with quantity, condition and location." },
   { icon: <Building2 className="h-5 w-5" />, title: "Recipients browse & request", desc: "Schools, NGOs and community centers search, filter and request what they need." },
-  { icon: <BrainCircuit className="h-5 w-5" />, title: "AI evaluates & DSA prioritizes", desc: "The engine scores every pending request; the priority queue orders them." },
+  { icon: <BrainCircuit className="h-5 w-5" />, title: "Matches & queue prioritizes", desc: "Database matching surfaces relevant inventory; priority and aging order requests for allocation." },
   { icon: <CheckCircle2 className="h-5 w-5" />, title: "Approved & reserved", desc: "Synchronized allocation locks the resource — no double assignment, ever." },
   { icon: <Truck className="h-5 w-5" />, title: "Pickup & delivery", desc: "Pickup is scheduled through the queue; status updates flow to both sides." },
-  { icon: <Recycle className="h-5 w-5" />, title: "Loop closes", desc: "Inventory updates, analytics learn, and the circular economy turns again." },
-];
-
-const CATEGORIES = [
-  { name: "Electronics", count: 320 },
-  { name: "Books", count: 285 },
-  { name: "Furniture", count: 246 },
-  { name: "Educational", count: 178 },
-  { name: "Sports", count: 124 },
-  { name: "Materials", count: 89 },
+  { icon: <Recycle className="h-5 w-5" />, title: "Loop closes", desc: "Allocation updates persistent inventory and live analytics reflect the circulation." },
 ];
 
 export default function Home() {
+  const [stats, setStats] = useState<Record<string, number> | null>(null);
+  const [categories, setCategories] = useState<{ name: string; value: number }[]>([]);
+  const [statsError, setStatsError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    apiRequest<{ stats: Record<string, number>; categoryDistribution: { name: string; value: number }[] }>("/analytics", { signal: controller.signal })
+      .then((result) => { setStats(result.stats); setCategories(result.categoryDistribution); })
+      .catch((reason: unknown) => { if (!controller.signal.aborted) setStatsError(reason instanceof Error ? reason.message : "Network data is unavailable."); });
+    return () => controller.abort();
+  }, []);
+
   return (
     <MarketingLayout>
       {/* ===== HERO ===== */}
@@ -106,7 +111,7 @@ export default function Home() {
             </div>
             <p className="mt-6 flex items-center gap-2 text-xs font-medium text-muted-foreground">
               <Layers className="h-4 w-4 text-primary" />
-              React · FastAPI · MySQL · scikit-learn · Priority Queue · Graph 
+              React · FastAPI · SQLite · SQLAlchemy · Priority Queue · Aging
             </p>
           </div>
           <AnimatedContent distance={80} duration={0.9} className="relative hidden md:block">
@@ -122,14 +127,14 @@ export default function Home() {
       {/* ===== STATS ===== */}
       <section className="border-y border-border bg-white/70 backdrop-blur-md shadow-[0_8px_32px_-20px_oklch(0.48_0.11_165/0.35)]">
         <div className="container grid grid-cols-2 gap-6 py-10 md:grid-cols-4">
-          {STATS.map((s) => (
+          {stats ? STATS.map((s) => (
             <ScrollReveal key={s.label} className="text-center">
               <p className="stat-num text-4xl text-primary sm:text-5xl">
-                <CountUp from={0} to={s.value} duration={1.4} separator="," suffix={s.suffix} />
+                <CountUp from={0} to={stats[s.key] ?? 0} duration={1.4} separator="," suffix={s.suffix} />
               </p>
               <p className="mt-1 text-sm text-muted-foreground">{s.label}</p>
             </ScrollReveal>
-          ))}
+          )) : <p className="col-span-full text-center text-sm text-muted-foreground">{statsError ?? "Loading current network totals…"}</p>}
         </div>
       </section>
 
@@ -172,7 +177,7 @@ export default function Home() {
               </ScrollReveal>
             </div>
             <div className="lg:col-span-3">
-              <img src={AI_BRAIN_IMG} alt="AI matching network" className="w-full rounded-3xl border border-emerald-100 shadow-xl shadow-emerald-900/10" />
+              <img src={AI_BRAIN_IMG} alt="Resource matching network illustration" className="w-full rounded-3xl border border-emerald-100 shadow-xl shadow-emerald-900/10" />
             </div>
           </div>
 
@@ -229,11 +234,13 @@ export default function Home() {
             </Link>
           </ScrollReveal>
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {CATEGORIES.map((c) => (
+            {categories.length === 0 ? (
+              <p className="col-span-full py-8 text-center text-sm text-muted-foreground">{statsError ?? "No resources are listed yet."}</p>
+            ) : categories.map((c) => (
               <Link key={c.name} href="/browse">
                 <SpotlightCard className="group flex flex-col items-center gap-2 glass-card p-6 text-center transition-transform duration-300 hover:-translate-y-1">
                   <p className="font-display text-2xl font-bold text-primary tabular-nums">
-                    <CountUp from={0} to={c.count} duration={1.1} separator="," />
+                    <CountUp from={0} to={c.value} duration={1.1} separator="," />
                   </p>
                   <p className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">{c.name}</p>
                 </SpotlightCard>

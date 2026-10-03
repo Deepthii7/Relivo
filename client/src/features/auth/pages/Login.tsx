@@ -4,24 +4,21 @@
  */
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { LogIn, Loader2, Sparkles } from "lucide-react";
+import { LogIn, Loader2 } from "lucide-react";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import type { Role } from "@/lib/mockData";
 
 const LOGO = "/manus-storage/reusenet-logo_f3c85d59.png";
 
 export default function Login() {
   const { user, login, isAuthenticated } = useAuth();
-  const [location, navigate] = useLocation();
+  const [, navigate] = useLocation();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<Role>("donor");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -30,19 +27,22 @@ export default function Login() {
     }
   }, [isAuthenticated, user, navigate]);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!email.trim() || !password.trim()) {
       toast.error("Please enter your email and password.");
       return;
     }
     setBusy(true);
-    setTimeout(() => {
-      login(role, email.split("@")[0].replace(/[^a-zA-Z ]/g, " ").trim());
+    try {
+      const signedInUser = await login(email.trim(), password);
+      toast.success(`Welcome back, ${signedInUser.name.split(" ")[0]}.`);
+      navigate(signedInUser.role === "admin" ? "/admin" : signedInUser.role === "donor" ? "/donor" : "/recipient");
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to sign in.");
+    } finally {
       setBusy(false);
-      toast.success(`Welcome back! Signed in as ${role}.`);
-      navigate(role === "admin" ? "/admin" : role === "donor" ? "/donor" : "/recipient");
-    }, 600);
+    }
   };
 
   return (
@@ -73,19 +73,6 @@ export default function Login() {
                 <Label htmlFor="password">Password</Label>
                 <Input id="password" type="password" placeholder="••••••••" value={password} onChange={(e) => setPassword(e.target.value)} className="rounded-lg bg-white" />
               </div>
-              <div className="space-y-1.5">
-                <Label>Sign in as</Label>
-                <Select value={role} onValueChange={(v) => setRole(v as Role)}>
-                  <SelectTrigger className="rounded-lg bg-white">
-                    <SelectValue placeholder="Select role" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="donor">Donor</SelectItem>
-                    <SelectItem value="recipient">Recipient (School / NGO / Community)</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
             </div>
             <Button type="submit" className="mt-6 w-full rounded-lg transition-transform active:scale-[0.97]" disabled={busy}>
               {busy ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <LogIn className="mr-2 h-4 w-4" />}
@@ -94,9 +81,6 @@ export default function Login() {
             <p className="mt-4 text-center text-sm text-muted-foreground">
               New here?{" "}
               <Link href="/register" className="font-medium text-primary hover:underline">Create an account</Link>
-            </p>
-            <p className="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50/70 px-3 py-2 text-xs text-emerald-800">
-              <Sparkles className="h-3.5 w-3.5" /> Demo mode: any email/password works — pick a role to explore that dashboard.
             </p>
           </form>
         </div>

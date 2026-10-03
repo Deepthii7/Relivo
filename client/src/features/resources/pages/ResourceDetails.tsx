@@ -2,20 +2,42 @@
  * RELIVO — Resource Details (Eco-Tech Glasshouse · medium animation)
  * Image with subtle hover lift, full resource metadata, donor card, clear CTA.
  */
+import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { ArrowLeft, MapPin, Package, Tag, User, Clock, TrendingUp, Zap } from "lucide-react";
 import SiteHeader from "@/components/shared/SiteHeader";
 import SiteFooter from "@/components/shared/SiteFooter";
 import { Button } from "@/components/ui/button";
-import { StatusBadge, CategoryIcon, ResourceImage } from "@/components/primitives";
-import { RESOURCES } from "@/lib/mockData";
+import { StatusBadge, CategoryIcon, ResourceImage, LoadingState } from "@/components/primitives";
+import { apiRequest, assetUrl, ApiError } from "@/lib/api";
+import type { Resource } from "@/lib/types";
 import NotFound from "@/features/dashboard/pages/NotFound";
 
 export default function ResourceDetails() {
   const params = useParams<{ id: string }>();
-  const resource = RESOURCES.find((r) => String(r.id) === params.id);
+  const [resource, setResource] = useState<Resource | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<{ message: string; status: number } | null>(null);
 
-  if (!resource) return <NotFound />;
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    apiRequest<{ resource: Resource }>(`/resources/${params.id}`, { signal: controller.signal })
+      .then(({ resource: result }) => setResource({ ...result, imageUrl: assetUrl(result.imageUrl) }))
+      .catch((reason: unknown) => {
+        if (!controller.signal.aborted) setError({
+          message: reason instanceof Error ? reason.message : "Unable to load this resource.",
+          status: reason instanceof ApiError ? reason.status : 0,
+        });
+      })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, [params.id]);
+
+  if (loading) return <LoadingState label="Loading resource…" />;
+  if (!resource) return error && error.status !== 404
+    ? <div className="container py-32 text-center"><p className="font-semibold">Resource could not be loaded</p><p className="mt-2 text-sm text-muted-foreground">{error.message}</p></div>
+    : <NotFound />;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -35,7 +57,7 @@ export default function ResourceDetails() {
                 {[
                   { icon: <Package className="h-4 w-4" />, label: "Quantity", value: `×${resource.quantity}` },
                   { icon: <Tag className="h-4 w-4" />, label: "Category", value: resource.category },
-                  { icon: <MapPin className="h-4 w-4" />, label: "Location", value: `${resource.distanceKm} km` },
+                  { icon: <MapPin className="h-4 w-4" />, label: "Location", value: resource.location },
                   { icon: <Clock className="h-4 w-4" />, label: "Uploaded", value: `${resource.uploadedDaysAgo}d ago` },
                 ].map((m) => (
                   <div key={m.label} className="rounded-xl border border-border bg-white p-4">
@@ -64,7 +86,7 @@ export default function ResourceDetails() {
                     <User className="h-4 w-4 text-primary" /> Donated by
                   </p>
                   <p className="mt-1 font-medium">{resource.donorName}</p>
-                  <p className="text-sm text-muted-foreground">{resource.donorOrg}</p>
+                  <p className="text-sm text-muted-foreground">{resource.donorOrg || "Community listing"}</p>
                 </div>
 
                 <div className="mt-4 flex items-center gap-2 rounded-xl bg-emerald-50/70 p-4 text-sm text-emerald-800">
@@ -73,19 +95,13 @@ export default function ResourceDetails() {
                 </div>
 
                 <div className="mt-6 space-y-3">
-                  {resource.status === "Available" ? (
-                    <Link href={`/request/${resource.id}`}>
-                      <Button size="lg" className="w-full rounded-xl text-base transition-transform active:scale-[0.97]">
-                        <Zap className="mr-1.5 h-4 w-4" /> Request This Resource
-                      </Button>
-                    </Link>
-                  ) : (
-                    <Button size="lg" disabled className="w-full rounded-xl text-base">
-                      Currently {resource.status}
+                  <Link href={`/request/${resource.id}`}>
+                    <Button size="lg" className="w-full rounded-xl text-base transition-transform active:scale-[0.97]">
+                      <Zap className="mr-1.5 h-4 w-4" /> {resource.quantity > 0 ? "Request This Resource" : "Join the Waitlist"}
                     </Button>
-                  )}
+                  </Link>
                   <p className="text-center text-xs text-muted-foreground">
-                    Requests are evaluated by the AI engine and ordered by the priority queue.
+                    Requests are synchronized against current inventory and ordered by priority and queue age.
                   </p>
                 </div>
               </div>

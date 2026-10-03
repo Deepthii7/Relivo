@@ -3,6 +3,7 @@
  * CountUp stats, SpotlightCard hover, recent donations + incoming requests tables.
  * Usability-first; no table animation.
  */
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Upload, Package, Inbox, CheckCircle2, ArrowRight, Plus } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -11,24 +12,43 @@ import CountUp from "@/components/reactbits/CountUp";
 import { StatusBadge } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { DONATIONS, REQUESTS } from "@/lib/mockData";
+import { apiRequest } from "@/lib/api";
+import type { Resource, ResourceRequest } from "@/lib/types";
 import RoleGate from "@/components/role-gating/RoleGate";
 
 export default function DonorDashboard() {
   const { user } = useAuth();
-  const myDonations = DONATIONS.filter((d) => d.donorId === user?.id);
-  const myRequests = REQUESTS.filter((r) => myDonations.some((d) => d.resourceTitle === r.resourceTitle));
+  const [resources, setResources] = useState<Resource[]>([]);
+  const [myRequests, setMyRequests] = useState<ResourceRequest[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    Promise.all([
+      apiRequest<{ resources: Resource[] }>("/resources", { signal: controller.signal }),
+      apiRequest<{ requests: ResourceRequest[] }>("/requests", { signal: controller.signal }),
+    ]).then(([resourceResult, requestResult]) => {
+      setResources(resourceResult.resources.filter((resource) => resource.donorId === user?.id));
+      setMyRequests(requestResult.requests);
+    }).catch((reason: unknown) => {
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Unable to load your dashboard.");
+    });
+    return () => controller.abort();
+  }, [user?.id]);
+
+  const myDonations = resources;
 
   const stats = [
-    { icon: <Package className="h-4 w-4" />, label: "Total Donations", value: 3, suffix: "", tone: "text-emerald-700 bg-emerald-50" },
-    { icon: <Upload className="h-4 w-4" />, label: "Available Resources", value: 2, suffix: "", tone: "text-sky-700 bg-sky-50" },
-    { icon: <Inbox className="h-4 w-4" />, label: "Pending Requests", value: myRequests.filter((r) => r.status === "Pending").length, suffix: "", tone: "text-orange-700 bg-orange-50" },
-    { icon: <CheckCircle2 className="h-4 w-4" />, label: "Completed Donations", value: 1, suffix: "", tone: "text-primary bg-primary/10" },
+    { icon: <Package className="h-4 w-4" />, label: "Total Donations", value: myDonations.length, suffix: "", tone: "text-emerald-700 bg-emerald-50" },
+    { icon: <Upload className="h-4 w-4" />, label: "Available Resources", value: myDonations.filter((resource) => resource.quantity > 0).length, suffix: "", tone: "text-sky-700 bg-sky-50" },
+    { icon: <Inbox className="h-4 w-4" />, label: "Pending Requests", value: myRequests.filter((r) => r.status === "Allocated" || r.status === "Waitlisted" || r.status === "Pending").length, suffix: "", tone: "text-orange-700 bg-orange-50" },
+    { icon: <CheckCircle2 className="h-4 w-4" />, label: "Completed Donations", value: myRequests.filter((r) => r.status === "Completed").length, suffix: "", tone: "text-primary bg-primary/10" },
   ];
 
   return (
     <RoleGate allowedRoles={["donor"]}>
       <DashboardLayout title={`Welcome back, ${user?.name.split(" ")[0]}`}>
+        {error && <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((s) => (
             <SpotlightCard key={s.label} className="glass-card p-5" spotlightColor="rgba(4,108,78,0.16)">
@@ -64,9 +84,9 @@ export default function DonorDashboard() {
             <tbody>
               {myDonations.map((d) => (
                 <tr key={d.id} className="border-b border-border/60 last:border-0 hover:bg-secondary/30 transition-colors">
-                  <td className="px-5 py-3.5 font-medium">{d.resourceTitle}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground">×{d.quantity}</td>
-                  <td className="px-5 py-3.5 text-muted-foreground">{d.date}</td>
+                  <td className="px-5 py-3.5 font-medium">{d.title}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">×{d.initialQuantity}</td>
+                  <td className="px-5 py-3.5 text-muted-foreground">{d.createdAt.slice(0, 10)}</td>
                   <td className="px-5 py-3.5"><StatusBadge status={d.status} /></td>
                 </tr>
               ))}

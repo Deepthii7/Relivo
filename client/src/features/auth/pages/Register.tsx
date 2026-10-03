@@ -4,7 +4,7 @@
  */
 import { useEffect, useState } from "react";
 import { Link, useLocation } from "wouter";
-import { UserPlus, Loader2, Sparkles } from "lucide-react";
+import { UserPlus, Loader2 } from "lucide-react";
 import MarketingLayout from "@/components/layouts/MarketingLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,13 +12,14 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
-import type { Role } from "@/lib/mockData";
+import type { Role } from "@/lib/types";
 
 const LOGO = "/manus-storage/reusenet-logo_f3c85d59.png";
 
 export default function Register() {
-  const { user, login, isAuthenticated } = useAuth();
-  const [location, navigate] = useLocation();
+  const { user, register, isAuthenticated } = useAuth();
+  const [, navigate] = useLocation();
+  const [userLocation, setUserLocation] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -39,12 +40,13 @@ export default function Register() {
       return;
     }
     setBusy(true);
-    setTimeout(() => {
-      login(role, name.trim());
-      setBusy(false);
-      toast.success(`Account created! Welcome to RELIVO, ${name.trim().split(" ")[0]}.`);
-      navigate(role === "admin" ? "/admin" : role === "donor" ? "/donor" : "/recipient");
-    }, 600);
+    register({ name: name.trim(), email: email.trim(), password, organization: org.trim(), location: userLocation.trim(), role })
+      .then((createdUser) => {
+        toast.success(`Account created! Welcome to RELIVO, ${createdUser.name.split(" ")[0]}.`);
+        navigate(createdUser.role === "donor" ? "/donor" : "/recipient");
+      })
+      .catch((error: unknown) => toast.error(error instanceof Error ? error.message : "Unable to create account."))
+      .finally(() => setBusy(false));
   };
 
   return (
@@ -77,6 +79,10 @@ export default function Register() {
                 </div>
               </div>
               <div className="space-y-1.5">
+                <Label htmlFor="location">Location</Label>
+                <Input id="location" placeholder="City or neighborhood" value={userLocation} onChange={(e) => setUserLocation(e.target.value)} className="rounded-lg bg-white" />
+              </div>
+              <div className="space-y-1.5">
                 <Label htmlFor="email">Email</Label>
                 <Input id="email" type="email" placeholder="you@organization.org" value={email} onChange={(e) => setEmail(e.target.value)} className="rounded-lg bg-white" />
               </div>
@@ -93,7 +99,6 @@ export default function Register() {
                   <SelectContent>
                     <SelectItem value="donor">Donor</SelectItem>
                     <SelectItem value="recipient">Recipient (School / NGO / Community)</SelectItem>
-                    <SelectItem value="admin">Admin</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -105,9 +110,6 @@ export default function Register() {
             <p className="mt-4 text-center text-sm text-muted-foreground">
               Already a member?{" "}
               <Link href="/login" className="font-medium text-primary hover:underline">Login</Link>
-            </p>
-            <p className="mt-3 flex items-center justify-center gap-1.5 rounded-lg bg-emerald-50/70 px-3 py-2 text-xs text-emerald-800">
-              <Sparkles className="h-3.5 w-3.5" /> Demo mode: this creates a local session — explore any dashboard role.
             </p>
           </form>
         </div>

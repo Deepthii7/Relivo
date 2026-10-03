@@ -2,7 +2,7 @@
  * RELIVO — Routing (Eco-Tech Glasshouse)
  * Marketing: Home, About, Login, Register, Browse, Resource details, Analytics.
  * App (role-gated): Donor / Recipient / Admin dashboards, Upload, Requests,
- * Request flow, AI Recommendations, Notifications.
+ * Request flow, resource matches, notifications.
  */
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";

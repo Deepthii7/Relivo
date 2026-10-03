@@ -5,7 +5,7 @@
  * ResourceImage: uniform image treatment for resource cards
  */
 import { Sparkles, Loader2 } from "lucide-react";
-import type { ResourceStatus, RequestStatus } from "@/lib/mockData";
+import type { ResourceStatus, RequestStatus } from "@/lib/types";
 
 export function AIBadge({ children = "AI Match", className = "" }: { children?: React.ReactNode; className?: string }) {
   return (
@@ -55,7 +55,7 @@ export function CategoryIcon({ category }: { category: string }) {
   return <span className="text-lg leading-none">{CATEGORY_ICONS[category] ?? "📦"}</span>;
 }
 
-export function ResourceImage({ src, alt, className = "", fallbackTone = "bg-gradient-to-br from-emerald-100 to-emerald-50" }: { src?: string; alt: string; className?: string; fallbackTone?: string }) {
+export function ResourceImage({ src, alt, className = "", fallbackTone = "bg-gradient-to-br from-emerald-100 to-emerald-50" }: { src?: string | null; alt: string; className?: string; fallbackTone?: string }) {
   if (!src) {
     return <div className={`flex items-center justify-center text-4xl ${fallbackTone} ${className}`} aria-label={alt}>📦</div>;
   }

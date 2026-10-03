@@ -14,7 +14,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
-import { CATEGORIES, CONDITIONS } from "@/lib/mockData";
+import { CATEGORIES, CONDITIONS } from "@/lib/constants";
+import { apiRequest } from "@/lib/api";
 
 export default function UploadResource() {
   const [, navigate] = useLocation();
@@ -24,21 +25,34 @@ export default function UploadResource() {
   const [quantity, setQuantity] = useState("");
   const [condition, setCondition] = useState<string>("");
   const [location, setLocation] = useState("");
+  const [image, setImage] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim() || !category || !quantity || !condition || !location.trim()) {
       toast.error("Please fill in all required fields.");
       return;
     }
     setBusy(true);
-    setTimeout(() => {
-      setBusy(false);
+    const formData = new FormData();
+    formData.set("title", title.trim());
+    formData.set("category", category);
+    formData.set("quantity", quantity);
+    formData.set("condition", condition);
+    formData.set("location", location.trim());
+    formData.set("description", description.trim());
+    if (image) formData.set("image", image);
+    try {
+      await apiRequest("/resources", { method: "POST", body: formData });
       setSubmitted(true);
       toast.success("Resource uploaded! It's now visible to recipients on the network.");
-    }, 700);
+    } catch (error) {
+      toast.error(error instanceof Error ? error.message : "Unable to upload this resource.");
+    } finally {
+      setBusy(false);
+    }
   };
 
   return (
@@ -54,7 +68,7 @@ export default function UploadResource() {
                   </span>
                   <h2 className="mt-4 font-display text-2xl font-bold">Resource listed on the network</h2>
                   <p className="mt-2 max-w-md text-sm text-muted-foreground">
-                    Your donation of "{title}" is now available. Recipients can browse, request, and the AI engine will begin evaluating matches.
+                    Your donation of "{title}" is now saved to the network and available to recipients.
                   </p>
                   <div className="mt-6 flex gap-3">
                     <Button onClick={() => navigate("/donor")} className="rounded-lg transition-transform active:scale-[0.97]">Go to Dashboard</Button>
@@ -115,7 +129,22 @@ export default function UploadResource() {
                       <UploadCloud className="h-8 w-8 text-muted-foreground" />
                       <p className="text-sm font-medium text-muted-foreground">Click or drag to upload a photo</p>
                       <p className="text-xs text-muted-foreground/70">PNG, JPG up to 5 MB</p>
-                      <input type="file" accept="image/*" className="sr-only" />
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/webp,image/gif"
+                        className="sr-only"
+                        onChange={(event) => {
+                          const selected = event.currentTarget.files?.[0] ?? null;
+                          if (selected && (!/^(image\/(png|jpeg|webp|gif))$/.test(selected.type) || selected.size > 5 * 1024 * 1024)) {
+                            event.currentTarget.value = "";
+                            setImage(null);
+                            toast.error("Choose a PNG, JPG, WebP, or GIF image smaller than 5 MB.");
+                            return;
+                          }
+                          setImage(selected);
+                        }}
+                      />
+                      {image && <p className="text-xs font-medium text-primary">{image.name}</p>}
                     </label>
                   </div>
                   <Button type="submit" size="lg" className="w-full rounded-lg transition-transform active:scale-[0.97]" disabled={busy}>
@@ -123,7 +152,7 @@ export default function UploadResource() {
                     {busy ? "Uploading…" : "Upload Resource"}
                   </Button>
                   <p className="text-center text-xs text-muted-foreground">
-                    After upload, your resource enters the AI evaluation queue — recommendations are generated as recipients request it.
+                    The resource and optional image are stored in SQLite-backed inventory and can be viewed after refresh.
                   </p>
                 </form>
               )}

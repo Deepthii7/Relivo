@@ -1,8 +1,8 @@
 /*
  * RELIVO — Recipient Dashboard (Eco-Tech Glasshouse · low/medium animation)
- * Animated stats, spotlight cards, AI recommendation strip that visually
- * stands out from normal resources (gradient border + AI badge).
+ * Animated stats, spotlight cards, backend-matched resources, and live requests.
  */
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { PackageSearch, ListChecks, Sparkles, CheckCircle2, Zap, ArrowRight } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
@@ -11,20 +11,37 @@ import CountUp from "@/components/reactbits/CountUp";
 import { AIBadge, StatusBadge } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
-import { REQUESTS, AI_RECOMMENDATIONS } from "@/lib/mockData";
+import { apiRequest, assetUrl } from "@/lib/api";
+import type { Resource, ResourceRequest } from "@/lib/types";
+import ResourceCard from "@/components/shared/ResourceCard";
 import RoleGate from "@/components/role-gating/RoleGate";
 
 export default function RecipientDashboard() {
   const { user } = useAuth();
-  const myRequests = REQUESTS.filter((r) => r.recipientId === user?.id);
-  const pending = myRequests.filter((r) => r.status === "Pending").length;
-  const approved = myRequests.filter((r) => r.status === "Approved" || r.status === "Reserved" || r.status === "Pickup Scheduled").length;
+  const [myRequests, setMyRequests] = useState<ResourceRequest[]>([]);
+  const [myRecommendations, setMyRecommendations] = useState<Resource[]>([]);
+  const [error, setError] = useState<string | null>(null);
+  const pending = myRequests.filter((r) => r.status === "Pending" || r.status === "Waitlisted").length;
   const completed = myRequests.filter((r) => r.status === "Completed").length;
-  const myRecommendations = AI_RECOMMENDATIONS.slice(0, 2);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    const params = new URLSearchParams({ location: user?.location ?? "" });
+    Promise.all([
+      apiRequest<{ requests: ResourceRequest[] }>("/requests", { signal: controller.signal }),
+      apiRequest<{ matches: Resource[] }>(`/resources/match?${params}`, { signal: controller.signal }),
+    ]).then(([requestResult, matchResult]) => {
+      setMyRequests(requestResult.requests);
+      setMyRecommendations(matchResult.matches.map((item) => ({ ...item, imageUrl: assetUrl(item.imageUrl) })));
+    }).catch((reason: unknown) => {
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Unable to load your dashboard.");
+    });
+    return () => controller.abort();
+  }, [user?.location]);
 
   const stats = [
-    { icon: <PackageSearch className="h-4 w-4" />, label: "Resources Available", value: 11, tone: "text-emerald-700 bg-emerald-50" },
-    { icon: <Sparkles className="h-4 w-4" />, label: "AI Matches for You", value: 4, tone: "text-emerald-700 bg-emerald-50" },
+    { icon: <PackageSearch className="h-4 w-4" />, label: "Resources Available", value: myRecommendations.length, tone: "text-emerald-700 bg-emerald-50" },
+    { icon: <Sparkles className="h-4 w-4" />, label: "Resource Matches", value: myRecommendations.length, tone: "text-emerald-700 bg-emerald-50" },
     { icon: <ListChecks className="h-4 w-4" />, label: "Pending Requests", value: pending, tone: "text-orange-700 bg-orange-50" },
     { icon: <CheckCircle2 className="h-4 w-4" />, label: "Completed", value: completed, tone: "text-primary bg-primary/10" },
   ];
@@ -32,6 +49,7 @@ export default function RecipientDashboard() {
   return (
     <RoleGate allowedRoles={["recipient"]}>
       <DashboardLayout title={`Welcome back, ${user?.name.split(" ")[0]}`}>
+        {error && <p role="alert" className="mb-4 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">{error}</p>}
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
           {stats.map((s) => (
             <SpotlightCard key={s.label} className="glass-card p-5" spotlightColor="rgba(4,108,78,0.16)">
@@ -44,51 +62,19 @@ export default function RecipientDashboard() {
           ))}
         </div>
 
-        {/* AI recommendations — visually distinct */}
+        {/* Matched resources */}
         <div className="mt-10 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <h2 className="font-display text-lg font-semibold">AI Recommendations for You</h2>
-            <AIBadge>Engine Active</AIBadge>
+            <h2 className="font-display text-lg font-semibold">Resource Matches for You</h2>
+            <AIBadge>Live matches</AIBadge>
           </div>
           <Link href="/recommendations" className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary hover:translate-x-0.5 transition-transform">
             View all <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {myRecommendations.map((rec) => (
-            <div key={rec.id} className="relative rounded-2xl border-2 border-transparent bg-gradient-to-r from-emerald-600 via-emerald-500 to-amber-500 p-[2px] shadow-lg shadow-emerald-900/10">
-              <div className="rounded-[14px] glass-card p-5">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Match for</p>
-                    <p className="font-display font-semibold">{rec.resourceTitle}</p>
-                    <p className="text-sm text-muted-foreground">{rec.recipientOrg}</p>
-                  </div>
-                  <div className="text-right">
-                    <p className="font-display text-3xl font-bold tabular-nums text-primary">
-                      <CountUp from={0} to={rec.score} duration={1.2} />
-                    </p>
-                    <p className="text-[11px] font-medium uppercase tracking-wide text-muted-foreground">match score</p>
-                  </div>
-                </div>
-                <div className="mt-3 flex flex-wrap gap-1.5">
-                  {rec.reasons.slice(0, 2).map((reason) => (
-                    <span key={reason} className="rounded-md bg-emerald-50 px-2 py-0.5 text-xs text-emerald-800">✓ {reason}</span>
-                  ))}
-                </div>
-                <div className="mt-4 flex items-center justify-between">
-                  <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span>{rec.distanceKm} km away</span>
-                    <span>×{rec.quantityRequired} needed</span>
-                    <span className="flex items-center gap-1 font-medium text-orange-700"><Zap className="h-3 w-3" />{rec.urgency}</span>
-                  </div>
-                  <Link href={`/request/${1}`}>
-                    <Button size="sm" className="rounded-lg transition-transform active:scale-[0.97]">Request</Button>
-                  </Link>
-                </div>
-              </div>
-            </div>
-          ))}
+          {myRecommendations.slice(0, 2).map((resource) => <ResourceCard key={resource.id} resource={resource} highlight />)}
+          {myRecommendations.length === 0 && <p className="text-sm text-muted-foreground">No matching resources are available yet.</p>}
         </div>
 
         <h2 className="mt-10 font-display text-lg font-semibold">Your Requests</h2>

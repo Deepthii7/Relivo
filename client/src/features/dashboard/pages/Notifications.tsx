@@ -3,36 +3,46 @@
  * Animated list with fade/slide, read/unread distinction, type icons,
  * mark-all-read action. No excessive motion.
  */
-import { useState } from "react";
-import { CheckCheck, Bell, FileText, Zap, Truck, CheckCircle2, XCircle, Sparkles, Inbox } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Bell, FileText, CheckCircle2, XCircle, Inbox } from "lucide-react";
 import DashboardLayout from "@/components/layouts/DashboardLayout";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { useAuth } from "@/contexts/AuthContext";
-import { NOTIFICATIONS, type NotificationType } from "@/lib/mockData";
+import { apiRequest } from "@/lib/api";
 import RoleGate, { AnySession } from "@/components/role-gating/RoleGate";
 
-const TYPE_META: Record<NotificationType, { icon: React.ReactNode; tone: string; label: string }> = {
+interface RequestNotification {
+  id: number;
+  title: string;
+  message: string;
+  type: string;
+  read: boolean;
+  createdAt: string;
+}
+
+const TYPE_META: Record<string, { icon: React.ReactNode; tone: string; label: string }> = {
+  pending: { icon: <FileText className="h-4 w-4" />, tone: "bg-orange-50 text-orange-600", label: "Queued" },
+  waitlisted: { icon: <FileText className="h-4 w-4" />, tone: "bg-orange-50 text-orange-600", label: "Waitlisted" },
+  allocated: { icon: <CheckCircle2 className="h-4 w-4" />, tone: "bg-emerald-50 text-emerald-600", label: "Allocated" },
   approved: { icon: <CheckCircle2 className="h-4 w-4" />, tone: "bg-emerald-50 text-emerald-600", label: "Approved" },
   rejected: { icon: <XCircle className="h-4 w-4" />, tone: "bg-red-50 text-red-600", label: "Update" },
   reserved: { icon: <FileText className="h-4 w-4" />, tone: "bg-sky-50 text-sky-600", label: "Reserved" },
-  pickup: { icon: <Truck className="h-4 w-4" />, tone: "bg-blue-50 text-blue-600", label: "Pickup" },
   completed: { icon: <CheckCircle2 className="h-4 w-4" />, tone: "bg-emerald-50 text-emerald-600", label: "Completed" },
-  ai: { icon: <Sparkles className="h-4 w-4" />, tone: "bg-emerald-50 text-emerald-600", label: "AI" },
 };
 
 export default function Notifications() {
-  const { user } = useAuth();
-  const [items, setItems] = useState(NOTIFICATIONS);
-  const unread = items.filter((n) => !n.read).length;
+  const [items, setItems] = useState<RequestNotification[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const markAll = () => {
-    setItems(items.map((n) => ({ ...n, read: true })));
-    toast.success("All notifications marked as read.");
-  };
-
-  const filtered = user?.role === "admin" ? items : items.filter((n) => n.userId === user?.id);
+  useEffect(() => {
+    const controller = new AbortController();
+    apiRequest<{ notifications: RequestNotification[] }>("/notifications", { signal: controller.signal })
+      .then(({ notifications }) => setItems(notifications))
+      .catch((reason: unknown) => { if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Unable to load request updates."); })
+      .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    return () => controller.abort();
+  }, []);
+  const filtered = items;
 
   return (
     <RoleGate allowedRoles={["donor", "recipient", "admin"]}>
@@ -40,18 +50,15 @@ export default function Notifications() {
         <DashboardLayout title="Notifications">
           <div className="mb-6 flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              {unread > 0 ? <strong className="text-foreground">{unread} unread</strong> : "All caught up"} — request updates, AI matches and pickup schedules land here.
+              {items.length > 0 ? <strong className="text-foreground">{items.length} request updates</strong> : "No request activity yet"} — updates reflect your current queue.
             </p>
-            {unread > 0 && (
-              <Button size="sm" variant="outline" className="rounded-lg" onClick={markAll}>
-                <CheckCheck className="mr-1.5 h-4 w-4" /> Mark all read
-              </Button>
-            )}
           </div>
 
-          <div className="space-y-3">
+          {loading ? <p className="py-12 text-center text-sm text-muted-foreground">Loading request updates…</p> : error ? (
+            <p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive">{error}</p>
+          ) : <div className="space-y-3">
             {filtered.map((n, i) => {
-              const meta = TYPE_META[n.type];
+              const meta = TYPE_META[n.type] ?? TYPE_META.pending;
               return (
                 <SpotlightCard key={n.id} className="rise-in border border-border bg-white" spotlightColor="rgba(4,108,78,0.1)">
                   <div
@@ -68,23 +75,15 @@ export default function Notifications() {
                         {!n.read && <span className="h-2 w-2 rounded-full bg-primary" />}
                       </div>
                       <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{n.message}</p>
-                      <p className="mt-1.5 text-xs text-muted-foreground/70">{n.createdAt}</p>
+                      <p className="mt-1.5 text-xs text-muted-foreground/70">{new Date(n.createdAt).toLocaleString()}</p>
                     </div>
-                    {!n.read && (
-                      <button
-                        className="shrink-0 text-xs font-medium text-primary hover:underline"
-                        onClick={() => setItems(items.map((x) => (x.id === n.id ? { ...x, read: true } : x)))}
-                      >
-                        Mark read
-                      </button>
-                    )}
                   </div>
                 </SpotlightCard>
               );
             })}
-          </div>
+          </div>}
 
-          {filtered.length === 0 && (
+          {!loading && !error && filtered.length === 0 && (
             <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-border py-20 text-center">
               <Inbox className="h-10 w-10 text-muted-foreground/50" />
               <p className="font-display text-lg font-semibold text-muted-foreground">No notifications yet</p>

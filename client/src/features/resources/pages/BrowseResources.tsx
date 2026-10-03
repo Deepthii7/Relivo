@@ -3,37 +3,46 @@
  * Marketplace/catalog feel: search, category/condition/location filters,
  * resource grid with spotlight hover and staggered entrance. Not e-commerce.
  */
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Search, SlidersHorizontal } from "lucide-react";
 import SiteHeader from "@/components/shared/SiteHeader";
 import SiteFooter from "@/components/shared/SiteFooter";
 import ResourceCard from "@/components/shared/ResourceCard";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CATEGORIES, CONDITIONS, RESOURCES, type ResourceCondition } from "@/lib/mockData";
-import { LoadingState } from "@/components/primitives";
+import { CATEGORIES, CONDITIONS } from "@/lib/constants";
+import { apiRequest, assetUrl } from "@/lib/api";
+import type { Resource } from "@/lib/types";
 
 export default function BrowseResources() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [condition, setCondition] = useState("Any");
   const [avail, setAvail] = useState("Any");
+  const [resources, setResources] = useState<Resource[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retry, setRetry] = useState(0);
 
-  useMemo(() => {
-    const t = setTimeout(() => setLoading(false), 450);
-    return () => clearTimeout(t);
-  }, []);
-
-  const filtered = useMemo(() => {
-    return RESOURCES.filter((r) => {
-      const matchSearch = !search || r.title.toLowerCase().includes(search.toLowerCase()) || r.description.toLowerCase().includes(search.toLowerCase()) || r.category.toLowerCase().includes(search.toLowerCase());
-      const matchCat = category === "All" || r.category === category;
-      const matchCond = condition === "Any" || r.condition === (condition as ResourceCondition);
-      const matchAvail = avail === "Any" || r.status === avail;
-      return matchSearch && matchCat && matchCond && matchAvail;
-    });
-  }, [search, category, condition, avail]);
+  useEffect(() => {
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => {
+      setLoading(true);
+      setError(null);
+      const params = new URLSearchParams();
+      if (search.trim()) params.set("q", search.trim());
+      if (category !== "All") params.set("category", category);
+      if (condition !== "Any") params.set("condition", condition);
+      if (avail !== "Any") params.set("status", avail);
+      apiRequest<{ resources: Resource[] }>(`/resources?${params}`, { signal: controller.signal })
+        .then(({ resources: results }) => setResources(results.map((item) => ({ ...item, imageUrl: assetUrl(item.imageUrl) }))))
+        .catch((reason: unknown) => {
+          if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Unable to load resources.");
+        })
+        .finally(() => { if (!controller.signal.aborted) setLoading(false); });
+    }, search ? 250 : 0);
+    return () => { window.clearTimeout(timer); controller.abort(); };
+  }, [search, category, condition, avail, retry]);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -41,7 +50,7 @@ export default function BrowseResources() {
       <main className="flex-1">
         <div className="page-header">
           <div className="container py-12 pt-24 md:pt-28">
-            <p className="mb-2 inline-flex items-center gap-1.5 rounded-full ai-chip px-3 py-1 text-xs font-semibold"><span>✦</span> AI-matched · 1,284+ resources circulating</p>
+            <p className="mb-2 inline-flex items-center gap-1.5 rounded-full ai-chip px-3 py-1 text-xs font-semibold"><span>✦</span> Live network inventory</p>
             <h1 className="font-display text-4xl font-bold tracking-tight md:text-5xl">Browse Resources</h1>
             <p className="mt-2 max-w-2xl text-base text-muted-foreground">
               A network of reusable resources waiting for a second life — laptops, books, furniture, equipment and more. Find what your organization needs and request it.
@@ -94,7 +103,7 @@ export default function BrowseResources() {
           </div>
 
           <p className="mt-5 text-sm text-muted-foreground">
-            {filtered.length} resource{filtered.length === 1 ? "" : "s"} match your filters
+            {resources.length} resource{resources.length === 1 ? "" : "s"} match your filters
           </p>
 
           {loading ? (
@@ -106,7 +115,13 @@ export default function BrowseResources() {
                 </div>
               ))}
             </div>
-          ) : filtered.length === 0 ? (
+          ) : error ? (
+            <div className="mt-6 rounded-xl border border-destructive/30 bg-destructive/5 p-6 text-center">
+              <p className="font-medium text-destructive">Resources could not be loaded</p>
+              <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+              <button className="mt-3 text-sm font-semibold text-primary hover:underline" onClick={() => setRetry((value) => value + 1)}>Try again</button>
+            </div>
+          ) : resources.length === 0 ? (
             <div className="flex flex-col items-center gap-3 py-20 text-center">
               <div className="rounded-full bg-secondary p-4 text-3xl">🔍</div>
               <h2 className="font-display text-lg font-semibold">No resources found</h2>
@@ -114,7 +129,7 @@ export default function BrowseResources() {
             </div>
           ) : (
             <div className="mt-4 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-              {filtered.map((r, i) => (
+              {resources.map((r, i) => (
                 <div key={r.id} className="rise-in" style={{ animationDelay: `${i * 50}ms` }}>
                   <ResourceCard resource={r} />
                 </div>

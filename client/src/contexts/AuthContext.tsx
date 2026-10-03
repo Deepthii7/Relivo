@@ -1,62 +1,71 @@
-/*
- * RELIVO — Mock auth session (Eco-Tech Glasshouse)
- * Client-side demo session stored in localStorage: { role, name, email, loggedIn }
- * Mirrors the JWT role-based access described in the project handoff, so the
- * real FastAPI backend can drop in later with zero UI changes.
- */
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
-import type { Role, User } from "@/lib/mockData";
-import { DEMO_USERS } from "@/lib/mockData";
+import { apiRequest, getAccessToken, saveAccessToken } from "@/lib/api";
+import type { Role, User } from "@/lib/types";
 
 interface AuthContextType {
   user: User | null;
-  login: (role: Role, name?: string) => void;
-  logout: () => void;
+  loading: boolean;
+  login: (email: string, password: string) => Promise<User>;
+  register: (payload: { name: string; email: string; password: string; organization: string; location?: string; role: Role }) => Promise<User>;
+  logout: () => Promise<void>;
   isAuthenticated: boolean;
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
-  login: () => {},
-  logout: () => {},
+  loading: true,
+  login: async () => { throw new Error("Authentication is unavailable"); },
+  register: async () => { throw new Error("Authentication is unavailable"); },
+  logout: async () => {},
   isAuthenticated: false,
 });
 
-const STORAGE_KEY = "reusenet_session";
-
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch {
-      return null;
-    }
-  });
+  const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const login = useCallback((role: Role, name?: string) => {
-    const base = DEMO_USERS[role];
-    setUser({ ...base, ...(name ? { name } : {}) } as User);
+  useEffect(() => {
+    if (!getAccessToken()) {
+      setLoading(false);
+      return;
+    }
+    apiRequest<{ user: User }>("/auth/me")
+      .then(({ user: currentUser }) => setUser(currentUser))
+      .catch((error: { status?: number }) => {
+        if (error.status === 401) saveAccessToken(null);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
-  useEffect(() => {
-    if (user) localStorage.setItem(STORAGE_KEY, JSON.stringify(user));
-    else localStorage.removeItem(STORAGE_KEY);
-  }, [user]);
+  const login = useCallback(async (email: string, password: string) => {
+    const result = await apiRequest<{ token: string; user: User }>("/auth/login", {
+      method: "POST", body: JSON.stringify({ email, password }),
+    });
+    saveAccessToken(result.token);
+    setUser(result.user);
+    return result.user;
+  }, []);
 
-  // Dev-mode devtools hook: call window.__devAutoLogin(role) to sign in instantly in dev.
-  useEffect(() => {
-    if (!import.meta.env.DEV) return;
-    (window as unknown as Record<string, unknown>).__devAutoLogin = (role: string) => login(role as Role);
-    return () => {
-      delete (window as unknown as Record<string, unknown>).__devAutoLogin;
-    };
-  }, [login]);
+  const register = useCallback(async (payload: { name: string; email: string; password: string; organization: string; location?: string; role: Role }) => {
+    const result = await apiRequest<{ token: string; user: User }>("/auth/register", {
+      method: "POST", body: JSON.stringify(payload),
+    });
+    saveAccessToken(result.token);
+    setUser(result.user);
+    return result.user;
+  }, []);
 
-  const logout = useCallback(() => setUser(null), []);
+  const logout = useCallback(async () => {
+    try {
+      await apiRequest<void>("/auth/logout", { method: "POST" });
+    } finally {
+      saveAccessToken(null);
+      setUser(null);
+    }
+  }, []);
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, isAuthenticated: Boolean(user) }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, isAuthenticated: Boolean(user) }}>
       {children}
     </AuthContext.Provider>
   );

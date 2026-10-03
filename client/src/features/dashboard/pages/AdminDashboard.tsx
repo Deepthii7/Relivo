@@ -2,6 +2,7 @@
  * RELIVO — Admin Dashboard (Eco-Tech Glasshouse · professional, info-dense)
  * CountUp KPIs, spotlight cards, Recharts mini-charts with entrance, system activity.
  */
+import { useEffect, useState } from "react";
 import { Link } from "wouter";
 import { Users, Package, Inbox, CheckCircle2, ArrowRight } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell } from "recharts";
@@ -9,24 +10,46 @@ import DashboardLayout from "@/components/layouts/DashboardLayout";
 import SpotlightCard from "@/components/reactbits/SpotlightCard";
 import CountUp from "@/components/reactbits/CountUp";
 import { StatusBadge } from "@/components/primitives";
-import { ANALYTICS, REQUESTS } from "@/lib/mockData";
+import { apiRequest } from "@/lib/api";
+import type { ResourceRequest } from "@/lib/types";
+import { LoadingState } from "@/components/primitives";
 import RoleGate from "@/components/role-gating/RoleGate";
 
-const ACTIVITY = [
-  { time: "09:12", event: "Request #1 approved — Refurbished Laptops ×10 → Government School No. 47", tag: "approved" },
-  { time: "08:30", event: "AI engine generated 3 new recipient recommendations", tag: "ai" },
-  { time: "08:02", event: "Resource 'Stationery Bulk Lot' uploaded by City Central Library", tag: "upload" },
-  { time: "Yesterday", event: "Reservation timeout released 'Office Chairs' back to Available (deadlock prevention)", tag: "timeout" },
-  { time: "Yesterday", event: "Simultaneous-request synchronization: 1 request waitlisted for 'Office Chairs'", tag: "sync" },
-  { time: "Aug 13", event: "Pickup scheduled for Sports Equipment Bundle ×60", tag: "pickup" },
-];
+interface AnalyticsData {
+  stats: { totalUsers: number; totalResources: number; pendingRequests: number; completedDonations: number; utilizationRate: number };
+  monthlyDonations: { month: string; donations: number; requests: number }[];
+  statusBreakdown: { name: string; value: number }[];
+}
+
+const CHART_COLORS = ["var(--chart-1)", "var(--chart-2)", "var(--chart-3)", "var(--chart-4)", "var(--chart-5)"];
 
 export default function AdminDashboard() {
+  const [analytics, setAnalytics] = useState<AnalyticsData | null>(null);
+  const [requests, setRequests] = useState<ResourceRequest[]>([]);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    Promise.all([
+      apiRequest<AnalyticsData>("/analytics", { signal: controller.signal }),
+      apiRequest<{ requests: ResourceRequest[] }>("/requests", { signal: controller.signal }),
+    ]).then(([analyticsResult, requestResult]) => {
+      setAnalytics(analyticsResult);
+      setRequests(requestResult.requests);
+    }).catch((reason: unknown) => {
+      if (!controller.signal.aborted) setError(reason instanceof Error ? reason.message : "Unable to load the system overview.");
+    });
+    return () => controller.abort();
+  }, []);
+
+  if (error) return <RoleGate allowedRoles={["admin"]}><DashboardLayout title="System Overview"><p role="alert" className="rounded-xl border border-destructive/30 bg-destructive/5 p-5 text-sm text-destructive">{error}</p></DashboardLayout></RoleGate>;
+  if (!analytics) return <LoadingState label="Loading system overview…" />;
+
   const kpis = [
-    { icon: <Users className="h-4 w-4" />, label: "Total Users", value: ANALYTICS.stats.totalUsers, tone: "text-emerald-700 bg-emerald-50" },
-    { icon: <Package className="h-4 w-4" />, label: "Total Resources", value: ANALYTICS.stats.totalResources, tone: "text-sky-700 bg-sky-50" },
-    { icon: <Inbox className="h-4 w-4" />, label: "Pending Requests", value: ANALYTICS.stats.pendingRequests, tone: "text-orange-700 bg-orange-50" },
-    { icon: <CheckCircle2 className="h-4 w-4" />, label: "Completed Donations", value: ANALYTICS.stats.completedDonations, tone: "text-primary bg-primary/10" },
+    { icon: <Users className="h-4 w-4" />, label: "Total Users", value: analytics.stats.totalUsers, tone: "text-emerald-700 bg-emerald-50" },
+    { icon: <Package className="h-4 w-4" />, label: "Total Resources", value: analytics.stats.totalResources, tone: "text-sky-700 bg-sky-50" },
+    { icon: <Inbox className="h-4 w-4" />, label: "Pending Requests", value: analytics.stats.pendingRequests, tone: "text-orange-700 bg-orange-50" },
+    { icon: <CheckCircle2 className="h-4 w-4" />, label: "Completed Donations", value: analytics.stats.completedDonations, tone: "text-primary bg-primary/10" },
   ];
 
   return (
@@ -51,7 +74,7 @@ export default function AdminDashboard() {
               <Link href="/analytics" className="inline-flex items-center gap-1 text-xs font-semibold text-primary hover:underline">Full report <ArrowRight className="h-3 w-3" /></Link>
             </div>
             <div className="h-56">
-              <BarChart width={720} height={264} data={ANALYTICS.monthlyDonations} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+              <BarChart width={720} height={264} data={analytics.monthlyDonations} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
                   <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                   <YAxis tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
                   <Tooltip cursor={{ fill: "oklch(0.945 0.02 160 / 0.5)" }} contentStyle={{ borderRadius: 12, border: "1px solid var(--border)" }} />
@@ -64,48 +87,43 @@ export default function AdminDashboard() {
           <SpotlightCard className="glass-card p-5 xl:col-span-2" spotlightColor="rgba(4,108,78,0.08)">
             <div className="mb-4 flex items-center justify-between">
               <h3 className="font-display font-semibold">Resource Utilization</h3>
-              <span className="font-display text-xl font-bold text-primary"><CountUp from={0} to={ANALYTICS.stats.utilizationRate} duration={1.2} />%</span>
+              <span className="font-display text-xl font-bold text-primary"><CountUp from={0} to={analytics.stats.utilizationRate} duration={1.2} />%</span>
             </div>
             <div className="h-56">
               <PieChart width={720} height={264}>
-                  <Pie data={ANALYTICS.statusBreakdown} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} paddingAngle={3} strokeWidth={0}>
-                    {ANALYTICS.statusBreakdown.map((s, i) => (
-                      <Cell key={s.name} fill={s.fill} />
+                  <Pie data={analytics.statusBreakdown} dataKey="value" nameKey="name" innerRadius={55} outerRadius={80} paddingAngle={3} strokeWidth={0}>
+                    {analytics.statusBreakdown.map((s, i) => (
+                      <Cell key={s.name} fill={CHART_COLORS[i % CHART_COLORS.length]} />
                     ))}
                   </Pie>
                   <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid var(--border)" }} />
                 </PieChart>
             </div>
             <div className="mt-2 flex flex-wrap justify-center gap-3">
-              {ANALYTICS.statusBreakdown.map((s) => (
+              {analytics.statusBreakdown.map((s, index) => (
                 <span key={s.name} className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                  <span className="h-2 w-2 rounded-full" style={{ background: s.fill }} />{s.name}
+                  <span className="h-2 w-2 rounded-full" style={{ background: CHART_COLORS[index % CHART_COLORS.length] }} />{s.name}
                 </span>
               ))}
             </div>
           </SpotlightCard>
         </div>
 
-        <h2 className="mt-10 font-display text-lg font-semibold">System Activity</h2>
+        <h2 className="mt-10 font-display text-lg font-semibold">Recent Request Activity</h2>
         <div className="mt-4 rounded-xl border border-border bg-white">
           <ul>
-            {ACTIVITY.map((a, i) => (
-              <li key={i} className="flex items-center gap-4 border-b border-border/60 px-5 py-3.5 last:border-0">
-                <span className="w-20 shrink-0 text-xs text-muted-foreground">{a.time}</span>
-                <StatusBadge status={
-                  a.tag === "approved" ? "Approved" :
-                  a.tag === "ai" ? "Completed" :
-                  a.tag === "timeout" ? "Available" :
-                  a.tag === "sync" ? "Waitlisted" : "Pickup Scheduled"
-                } />
-                <span className="text-sm">{a.event}</span>
+            {requests.slice(0, 6).map((request) => (
+              <li key={request.id} className="flex items-center gap-4 border-b border-border/60 px-5 py-3.5 last:border-0">
+                <span className="w-28 shrink-0 text-xs text-muted-foreground">{new Date(request.createdAt).toLocaleDateString()}</span>
+                <StatusBadge status={request.status} />
+                <span className="text-sm">{request.resourceTitle} ×{request.quantity} requested by {request.recipientOrg}</span>
               </li>
             ))}
           </ul>
         </div>
 
         <div className="mt-8 grid gap-5 lg:grid-cols-3">
-          {REQUESTS.filter((r) => r.status === "Pending").slice(0, 3).map((r) => (
+          {requests.filter((r) => r.status === "Pending" || r.status === "Waitlisted" || r.status === "Allocated").slice(0, 3).map((r) => (
             <SpotlightCard key={r.id} className="glass-card p-5">
               <div className="flex items-start justify-between gap-2">
                 <div>

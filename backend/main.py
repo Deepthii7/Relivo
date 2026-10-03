@@ -1,154 +1,43 @@
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 
-from algorithms.matching import find_matches
-from database.connection import Base, engine, SessionLocal
-from models.resource import ResourceDB
-
-
-# Create database tables
-Base.metadata.create_all(bind=engine)
-
-# Create Relivo application
-app = FastAPI(title="Relivo")
+from config import ALLOWED_ORIGINS, UPLOAD_DIR
+from database.connection import engine, initialize_database
+from routers import analytics, auth, requests, resources
 
 
-class Resource(BaseModel):
-    name: str
-    category: str
-    quantity: int
-    location: str
+initialize_database()
+UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+
+@asynccontextmanager
+async def lifespan(_app):
+    yield
+    engine.dispose()
+
+
+app = FastAPI(title="RELIVO API", version="1.0.0", lifespan=lifespan)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
+    allow_credentials=False,
+    allow_methods=["GET", "POST", "PATCH", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type"],
+)
+app.include_router(auth.router)
+app.include_router(resources.router)
+app.include_router(requests.router)
+app.include_router(analytics.router)
+app.mount("/uploads", StaticFiles(directory=UPLOAD_DIR), name="uploads")
 
 
 @app.get("/")
 def root():
-    return {
-        "message": "Relivo AI backend is running!"
-    }
+    return {"message": "RELIVO API is running", "docs": "/docs"}
 
 
-@app.post("/resources")
-def add_resource(resource: Resource):
-    db = SessionLocal()
-
-    new_resource = ResourceDB(
-        name=resource.name,
-        category=resource.category,
-        quantity=resource.quantity,
-        location=resource.location
-    )
-
-    db.add(new_resource)
-    db.commit()
-    db.refresh(new_resource)
-    db.close()
-
-    return {
-        "message": "Resource added successfully!",
-        "resource": {
-            "id": new_resource.id,
-            "name": new_resource.name,
-            "category": new_resource.category,
-            "quantity": new_resource.quantity,
-            "location": new_resource.location
-        }
-    }
-
-
-@app.get("/resources")
-def get_all_resources():
-    db = SessionLocal()
-
-    resources = db.query(ResourceDB).all()
-
-    result = [
-        {
-            "id": resource.id,
-            "name": resource.name,
-            "category": resource.category,
-            "quantity": resource.quantity,
-            "location": resource.location
-        }
-        for resource in resources
-    ]
-
-    db.close()
-
-    return {
-        "resources": result
-    }
-
-
-@app.get("/resources/search")
-def search_resources(
-    name: str = None,
-    category: str = None,
-    location: str = None
-):
-    db = SessionLocal()
-
-    query = db.query(ResourceDB)
-
-    if name:
-        query = query.filter(
-            ResourceDB.name.ilike(f"%{name}%")
-        )
-
-    if category:
-        query = query.filter(
-            ResourceDB.category.ilike(category)
-        )
-
-    if location:
-        query = query.filter(
-            ResourceDB.location.ilike(location)
-        )
-
-    resources = query.all()
-
-    result = [
-        {
-            "id": resource.id,
-            "name": resource.name,
-            "category": resource.category,
-            "quantity": resource.quantity,
-            "location": resource.location
-        }
-        for resource in resources
-    ]
-
-    db.close()
-
-    return {
-        "resources": result
-    }
-
-
-@app.get("/resources/match")
-def match_resources(category: str, location: str):
-    db = SessionLocal()
-
-    resources = db.query(ResourceDB).all()
-
-    matches = find_matches(
-        resources,
-        category,
-        location
-    )
-
-    result = [
-        {
-            "id": resource.id,
-            "name": resource.name,
-            "category": resource.category,
-            "quantity": resource.quantity,
-            "location": resource.location
-        }
-        for resource in matches
-    ]
-
-    db.close()
-
-    return {
-        "matches": result
-    }
+@app.get("/health")
+def health():
+    return {"status": "ok"}

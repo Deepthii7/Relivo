@@ -1,18 +1,14 @@
 def find_matches(resources, category, location):
-    matches = []
-
+    category = (category or "").strip().casefold()
+    location = (location or "").strip().casefold()
+    ranked = []
     for resource in resources:
-        category_match = (
-            resource.category.lower()
-            == category.lower()
-        )
-
-        location_match = (
-            resource.location.lower()
-            == location.lower()
-        )
-
+        category_value = resource.category.casefold()
+        location_value = resource.location.casefold()
+        category_match = not category or category in category_value or category_value in category
+        location_match = not location or location in location_value or location_value in location
         if category_match and location_match:
-            matches.append(resource)
-
-    return matches
+            score = int(bool(category) and category == category_value) * 2 + int(bool(location) and location_match)
+            ranked.append((score, resource))
+    ranked.sort(key=lambda item: (-item[0], item[1].id))
+    return [resource for _, resource in ranked]

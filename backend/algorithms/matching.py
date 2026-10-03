@@ -1,4 +1,4 @@
-def find_matches(resources, category, location):
+def find_matches(resources, category, location=None):
     matches = []
 
     for resource in resources:
@@ -7,7 +7,7 @@ def find_matches(resources, category, location):
             == category.lower()
         )
 
-        location_match = (
+        location_match = location is None or (
             resource.location.lower()
             == location.lower()
         )

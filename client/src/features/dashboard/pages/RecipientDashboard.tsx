@@ -13,16 +13,18 @@ import { AIBadge, StatusBadge } from "@/components/primitives";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Request, Resource } from "@/lib/mockData";
-import { AI_RECOMMENDATIONS } from "@/lib/mockData";
-import { findRecommendedResource, getRequests, getResources } from "@/lib/api";
+import { getRecommendations, getRequests, getResources, type Recommendation } from "@/lib/api";
 import RoleGate from "@/components/role-gating/RoleGate";
 
 export default function RecipientDashboard() {
   const { user } = useAuth();
   const [requests, setRequests] = useState<Request[]>([]);
   const [resources, setResources] = useState<Resource[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [recommendationsLoading, setRecommendationsLoading] = useState(true);
+  const [recommendationsError, setRecommendationsError] = useState("");
   const userId = user?.id;
 
   useEffect(() => {
@@ -46,15 +48,34 @@ export default function RecipientDashboard() {
     };
   }, [userId]);
 
+  useEffect(() => {
+    if (userId === undefined) return;
+    let active = true;
+    setRecommendationsLoading(true);
+    getRecommendations(userId)
+      .then((items) => {
+        if (active) setRecommendations(items);
+      })
+      .catch((cause: unknown) => {
+        if (active) setRecommendationsError(cause instanceof Error ? cause.message : "Could not load recommendations.");
+      })
+      .finally(() => {
+        if (active) setRecommendationsLoading(false);
+      });
+    return () => {
+      active = false;
+    };
+  }, [userId]);
+
   const myRequests = requests.filter((request) => request.recipientId === userId);
   const pending = myRequests.filter((r) => r.status === "Pending" || r.status === "Waitlisted").length;
   const completed = myRequests.filter((r) => r.status === "Completed").length;
-  const myRecommendations = AI_RECOMMENDATIONS.slice(0, 2);
+  const myRecommendations = recommendations.slice(0, 2);
   const availableResources = resources.filter((resource) => resource.status === "Available" && resource.quantity > 0).length;
 
   const stats = [
     { icon: <PackageSearch className="h-4 w-4" />, label: "Resources Available", value: availableResources, tone: "text-emerald-700 bg-emerald-50" },
-    { icon: <Sparkles className="h-4 w-4" />, label: "AI Matches for You", value: 4, tone: "text-emerald-700 bg-emerald-50" },
+    { icon: <Sparkles className="h-4 w-4" />, label: "AI Matches for You", value: recommendations.length, tone: "text-emerald-700 bg-emerald-50" },
     { icon: <ListChecks className="h-4 w-4" />, label: "Pending Requests", value: pending, tone: "text-orange-700 bg-orange-50" },
     { icon: <CheckCircle2 className="h-4 w-4" />, label: "Completed", value: completed, tone: "text-primary bg-primary/10" },
   ];
@@ -85,15 +106,19 @@ export default function RecipientDashboard() {
           </Link>
         </div>
         <div className="mt-4 grid gap-4 lg:grid-cols-2">
-          {myRecommendations.map((rec) => {
-            const resource = findRecommendedResource(resources, rec.resourceTitle);
-            return (
+          {recommendationsLoading ? (
+            <p className="text-sm text-muted-foreground">Loading recommendations…</p>
+          ) : recommendationsError ? (
+            <p className="text-sm text-destructive">{recommendationsError}</p>
+          ) : myRecommendations.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No recommendations are available yet.</p>
+          ) : myRecommendations.map((rec) => (
             <div key={rec.id} className="relative rounded-2xl border-2 border-transparent bg-gradient-to-r from-emerald-600 via-emerald-500 to-amber-500 p-[2px] shadow-lg shadow-emerald-900/10">
               <div className="rounded-[14px] glass-card p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Match for</p>
-                    <p className="font-display font-semibold">{rec.resourceTitle}</p>
+                    <p className="font-display font-semibold">{rec.resourceTitle} (×{rec.availableQuantity})</p>
                     <p className="text-sm text-muted-foreground">{rec.recipientOrg}</p>
                   </div>
                   <div className="text-right">
@@ -110,18 +135,17 @@ export default function RecipientDashboard() {
                 </div>
                 <div className="mt-4 flex items-center justify-between">
                   <div className="flex gap-4 text-xs text-muted-foreground">
-                    <span>{rec.distanceKm} km away</span>
+                    <span>{rec.distanceKm === null ? "Distance unavailable" : `${rec.distanceKm} km away`}</span>
                     <span>×{rec.quantityRequired} needed</span>
-                    <span className="flex items-center gap-1 font-medium text-orange-700"><Zap className="h-3 w-3" />{rec.urgency}</span>
+                    <span className="flex items-center gap-1 font-medium text-orange-700"><Zap className="h-3 w-3" />{rec.urgency[0].toUpperCase() + rec.urgency.slice(1)}</span>
                   </div>
-                  <Link href={resource ? `/request/${resource.id}` : "/browse"}>
-                    <Button size="sm" className="rounded-lg transition-transform active:scale-[0.97]">{resource ? "Request" : "Browse"}</Button>
+                  <Link href={`/request/${rec.resourceId}`}>
+                    <Button size="sm" className="rounded-lg transition-transform active:scale-[0.97]">Request</Button>
                   </Link>
                 </div>
               </div>
             </div>
-            );
-          })}
+          ))}
         </div>
 
         <h2 className="mt-10 font-display text-lg font-semibold">Your Requests</h2>

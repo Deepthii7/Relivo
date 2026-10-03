@@ -76,20 +76,6 @@ export interface Notification {
   createdAt: string;
 }
 
-export interface AIRecommendation {
-  id: number;
-  resourceTitle: string;
-  recipientName: string;
-  recipientOrg: string;
-  score: number;
-  reasons: string[];
-  demandLevel: "High" | "Medium" | "Low";
-  distanceKm: number;
-  quantityRequired: number;
-  urgency: "Critical" | "High" | "Normal";
-  previousDonations: number;
-}
-
 export const RESOURCES: Resource[] = [
   { id: 1, title: "Refurbished Laptops", category: "Electronics", description: "20 business-class laptops, freshly refurbished and tested with chargers. Ideal for computer labs.", quantity: 20, condition: "Good", location: "Koramangala, Bangalore", distanceKm: 3.2, status: "Available", donorId: 2, donorName: "Priya Sharma", donorOrg: "TechFlow Systems Pvt. Ltd.", uploadedDaysAgo: 2, requestedCount: 6, imageUrl: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853?w=800&q=80" },
   { id: 2, title: "Classroom Desks & Chairs", category: "Furniture", description: "30 wooden student desks with attached chairs, sturdy condition, suitable for government schools.", quantity: 30, condition: "Fair", location: "HSR Layout, Bangalore", distanceKm: 5.8, status: "Available", donorId: 2, donorName: "Ravi Kumar", donorOrg: "Urban Furniture Co.", uploadedDaysAgo: 4, requestedCount: 4, imageUrl: "https://images.unsplash.com/photo-1580480055273-228ff5388ef8?w=800&q=80" },
@@ -131,13 +117,6 @@ export const NOTIFICATIONS: Notification[] = [
   { id: 4, userId: 10, title: "Resource Reserved", message: "Your request has moved to Reserved. Please confirm collection within the synchronization timeout to avoid release.", type: "reserved", read: true, createdAt: "2026-08-12 11:20" },
   { id: 5, userId: 10, title: "Donation Completed", message: "Digital Projectors ×3 delivered to Al-Noor Community Library. Thank you for reusing!", type: "completed", read: true, createdAt: "2026-08-11 14:05" },
   { id: 6, userId: 10, title: "Request Waitlisted", message: "A simultaneous request for Office Chairs was synchronized — your request is queued behind an approved reservation.", type: "rejected", read: true, createdAt: "2026-08-10 10:33" },
-];
-
-export const AI_RECOMMENDATIONS: AIRecommendation[] = [
-  { id: 1, resourceTitle: "Refurbished Laptops (×20)", recipientName: "Zayed Ahmed", recipientOrg: "Government School No. 47, Bangalore", score: 95, reasons: ["High demand — 450 students, zero working machines", "Nearby location — 3.2 km from donor", "No recent laptop donation to this recipient", "Critical urgency flag raised by donor context"], demandLevel: "High", distanceKm: 3.2, quantityRequired: 10, urgency: "Critical", previousDonations: 1 },
-  { id: 2, resourceTitle: "Refurbished Laptops (×20)", recipientName: "Kavitha Rao", recipientOrg: "Hope Foundation NGO", score: 88, reasons: ["Strong demand for digital literacy program", "5.1 km — moderate distance", "Last laptop donation over 8 months ago"], demandLevel: "High", distanceKm: 5.1, quantityRequired: 8, urgency: "High", previousDonations: 3 },
-  { id: 3, resourceTitle: "Refurbished Laptops (×20)", recipientName: "Ramesh Pillai", recipientOrg: "Rural Learning Center, Channapatna", score: 72, reasons: ["Rural location raises priority weight", "24 km — transport cost considered", "Moderate demand level this quarter"], demandLevel: "Medium", distanceKm: 24.0, quantityRequired: 6, urgency: "Normal", previousDonations: 2 },
-  { id: 4, resourceTitle: "Library Books (×450)", recipientName: "Ramesh Pillai", recipientOrg: "Rural Learning Center, Channapatna", score: 91, reasons: ["Library has only 40 books for 320 children", "Books are high-demand, low-weight items", "Rural education multiplier applied"], demandLevel: "High", distanceKm: 24.0, quantityRequired: 200, urgency: "High", previousDonations: 0 },
 ];
 
 export const ANALYTICS = {

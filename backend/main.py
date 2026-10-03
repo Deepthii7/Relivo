@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 from typing import Literal
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field
 from sqlalchemy import inspect, text
@@ -11,6 +11,8 @@ from algorithms.matching import find_matches
 from database.connection import Base, engine, get_db
 from models.request import RequestDB
 from models.resource import ResourceDB
+from schemas.recommendation import RecommendationResponse
+from services.recommendation_service import generate_recommendations
 from services.request_workflow import URGENCY_PRIORITIES, decide_request, schedule_requests
 
 
@@ -182,6 +184,14 @@ def get_resource(resource_id: int, db: Session = Depends(get_db)):
     if resource is None:
         raise HTTPException(status_code=404, detail="Resource not found")
     return {"resource": serialize_resource(resource)}
+
+
+@app.get("/recommendations", response_model=RecommendationResponse)
+def get_recommendations(
+    recipient_id: int | None = Query(default=None, gt=0),
+    db: Session = Depends(get_db),
+):
+    return generate_recommendations(db, recipient_id)
 
 
 def serialize_request(request: RequestDB, priority: float | None = None) -> dict:

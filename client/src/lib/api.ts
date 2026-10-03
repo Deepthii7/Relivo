@@ -36,6 +36,54 @@ interface ApiRequest {
   created_at: string;
 }
 
+interface ApiRecommendation {
+  id: string;
+  source_request_id: number;
+  resource_id: number;
+  resource_title: string;
+  available_quantity: number;
+  donor_name: string;
+  donor_org: string;
+  recipient_id: number;
+  recipient_name: string;
+  recipient_org: string;
+  quantity_required: number;
+  urgency: "low" | "normal" | "high";
+  demand_level: "High" | "Medium" | "Low";
+  demand_request_count: number;
+  score: number;
+  score_components: {
+    category_fit: number;
+    quantity_fit: number;
+    urgency_fit: number;
+  };
+  reasons: string[];
+  distance_km: number | null;
+  previous_donations: number | null;
+}
+
+export interface Recommendation {
+  id: string;
+  sourceRequestId: number;
+  resourceId: number;
+  resourceTitle: string;
+  availableQuantity: number;
+  donorName: string;
+  donorOrg: string;
+  recipientId: number;
+  recipientName: string;
+  recipientOrg: string;
+  quantityRequired: number;
+  urgency: "low" | "normal" | "high";
+  demandLevel: "High" | "Medium" | "Low";
+  demandRequestCount: number;
+  score: number;
+  scoreComponents: ApiRecommendation["score_components"];
+  reasons: string[];
+  distanceKm: number | null;
+  previousDonations: number | null;
+}
+
 async function apiRequest<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(`${API_BASE}${path}`, {
     ...init,
@@ -90,13 +138,30 @@ export async function getResources(): Promise<Resource[]> {
   return result.resources.map(toResource);
 }
 
-export function findRecommendedResource(resources: Resource[], recommendationTitle: string): Resource | undefined {
-  const baseTitle = recommendationTitle.replace(/\s+\(×[\d,]+\)$/, "").trim().toLocaleLowerCase();
-  return resources.find((resource) =>
-    resource.title.trim().toLocaleLowerCase() === baseTitle &&
-    resource.status === "Available" &&
-    resource.quantity > 0
-  );
+export async function getRecommendations(recipientId?: number): Promise<Recommendation[]> {
+  const query = recipientId === undefined ? "" : `?recipient_id=${recipientId}`;
+  const result = await apiRequest<{ recommendations: ApiRecommendation[] }>(`/recommendations${query}`);
+  return result.recommendations.map((recommendation) => ({
+    id: recommendation.id,
+    sourceRequestId: recommendation.source_request_id,
+    resourceId: recommendation.resource_id,
+    resourceTitle: recommendation.resource_title,
+    availableQuantity: recommendation.available_quantity,
+    donorName: recommendation.donor_name,
+    donorOrg: recommendation.donor_org,
+    recipientId: recommendation.recipient_id,
+    recipientName: recommendation.recipient_name,
+    recipientOrg: recommendation.recipient_org,
+    quantityRequired: recommendation.quantity_required,
+    urgency: recommendation.urgency,
+    demandLevel: recommendation.demand_level,
+    demandRequestCount: recommendation.demand_request_count,
+    score: recommendation.score,
+    scoreComponents: recommendation.score_components,
+    reasons: recommendation.reasons,
+    distanceKm: recommendation.distance_km,
+    previousDonations: recommendation.previous_donations,
+  }));
 }
 
 export async function getResource(id: number): Promise<Resource> {

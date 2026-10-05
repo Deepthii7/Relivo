@@ -1,48 +1,112 @@
 # RELIVO
 
-RELIVO is a circular resource exchange MVP. The React/Vite client uses the FastAPI API as its source of truth; SQLAlchemy persists accounts, resources, sessions, and requests in SQLite.
+Relivo is a full-stack circular resource exchange platform designed to help organizations, donors, and communities redistribute useful items and resources more efficiently. The project combines a modern React + Vite frontend with a FastAPI backend and persistent SQLite storage to support a clean, mission-driven resource-sharing experience.
 
-## Run locally
+> Current status: Active development / MVP in progress. The core app flow and dashboard structure are in place, and the project is currently being finalized around UI polish, design restoration, and validation of the frontend/backend integration.
 
-Install the backend requirements into the repository virtual environment:
+## Overview
 
-```powershell
-py -3.12 -m venv venv
-.\venv\Scripts\python.exe -m pip install -r backend\requirements.txt
-```
+RELIVO connects:
+- Donors who want to contribute unused resources
+- Recipients who need resources for community or operational use
+- Admins who monitor allocation, requests, and platform activity
 
-Start FastAPI from the backend directory (the default database path is stable at `backend/resources.db`):
+The platform includes:
+- Landing page and marketing sections
+- Login and registration flows
+- Donor, recipient, and admin dashboards
+- Resource upload and browse experience
+- Request management and allocation logic
+- AI-based recommendation support
+- Notifications and analytics views
 
-```powershell
-Push-Location backend
-..\venv\Scripts\python.exe -m uvicorn main:app --reload --host 127.0.0.1 --port 8000
-Pop-Location
-```
+## Key Features
 
-In another terminal, install and start the frontend:
+- Resource listing and discovery
+- User roles and gated access
+- Upload flow with validation and secure storage
+- Request lifecycle management
+- Circular economy / sustainability-focused UX
+- AI-style recommendations and resource insights
+- Responsive dashboard views for all user types
+- Modern eco-tech design system with emerald/sage/amber branding
 
-```powershell
-npm install
-$env:VITE_API_URL = "http://127.0.0.1:8000"
-npm run dev -- --host 127.0.0.1
-```
+## Tech Stack
 
-Open <http://localhost:3000>. FastAPI docs are at <http://127.0.0.1:8000/docs>. `VITE_API_URL` is compiled into the client; configure `RELIVO_ALLOWED_ORIGINS` on the backend for the deployed frontend origin. Copy `.env.example` as a reference for the variable names.
+### Frontend
+- React
+- Vite
+- TypeScript
+- Tailwind CSS
+- Wouter (routing)
+- Recharts
+- Framer Motion / React Bits-inspired UI effects
 
-## Data and security
+### Backend
+- Python
+- FastAPI
+- SQLAlchemy
+- SQLite
+- Pydantic
 
-The application does not seed demo accounts or resources. Existing resource rows are kept when the database schema is upgraded. New accounts require a unique email and passwords are PBKDF2-SHA256 hashed; opaque, expiring bearer sessions are stored hashed in SQLite. Public registration permits donor and recipient roles; admin accounts are not self-registered.
+## Project Structure
 
-Uploaded images are limited to 5 MB, checked against MIME type, signature, decodable format, and pixel count, stored under `backend/uploads/` by generated filename, and referenced by a relative `/uploads/...` path in SQLite. Keep both the database and upload directory persistent in deployments.
+```text
+RELIVO/
+├── backend/
+│   ├── algorithms/
+│   ├── config.py
+│   ├── database/
+│   ├── models/
+│   ├── routers/
+│   ├── services/
+│   ├── tests/
+│   ├── main.py
+│   ├── requirements.txt
+│   └── resources.db
+├── client/
+│   ├── public/
+│   └── src/
+├── server/
+├── shared/
+├── scripts/
+├── package.json
+├── vite.config.ts
+├── README.md
+├── .env.example
+├── todo.md
+├── ideas.md
+└── ...
+Current Progress
+This project is currently in the refinement/finalization stage, with emphasis on:
 
-Requests are created in serialized SQLite transactions. Inventory is allocated once, duplicate active requests are rejected, unavailable quantities waitlist, urgent requests start with higher priority, and queue age adds five priority points per full day (capped at 100). Rejecting an allocated/reserved request returns its quantity to the queue.
+- restoring the original emerald eco-tech visual identity
+- fixing React Bits component import issues
+-validating frontend build health
+-maintaining the project’s feature-complete MVP behavior
+-polishing stakeholder-facing design and user experience
+The project is not yet a production deployment, but the core app architecture and workflows are in place for local development and demo use.
+Design Direction
+The interface follows a premium sustainability-tech aesthetic:
 
-## Verify
+emerald green primary palette
+cream/light surfaces
+warm amber accents
+modern glassmorphism-inspired cards
+clean dashboard-first usability
+restrained motion and polished premium UI
+This gives the app a strong circular-economy identity without feeling overly flashy or generic.
 
-```powershell
-npm run check
-npm run build
-.\venv\Scripts\python.exe -m unittest backend.tests.test_api_workflow -v
-```
+Roadmap
+Planned improvements include:
 
-The backend workflow test launches a separate API process with temporary SQLite and upload storage; it does not modify `backend/resources.db`.
+final UI polish and visual consistency
+bug fixes and build cleanup
+stronger backend validation and edge-case handling
+more realistic resource lifecycle flows
+expanded analytics and AI recommendation accuracy
+deployment-ready configuration and production hardening
+Notes
+The app is intended as a demo / MVP-style project for academic or portfolio use.
+It is currently under active refinement rather than final production release.
+Database and upload storage should remain persistent in deployment environments.
